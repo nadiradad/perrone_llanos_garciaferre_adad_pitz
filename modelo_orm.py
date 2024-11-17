@@ -74,7 +74,7 @@ class Licitacion(BaseModel):
     def __str__(self):
         return self.licitacion_oferta_empresa
     class Meta:
-        db_table = 'Licitacion'
+        db_table = 'Licitaciones'
 
 class TipoContratacion(BaseModel):
     id = AutoField(primary_key=True)
@@ -82,7 +82,7 @@ class TipoContratacion(BaseModel):
     def __str__(self):
         return self.contratacion_tipo
     class Meta:
-        db_table = 'TipoContratacion'
+        db_table = 'TipoContrataciones'
 
 class Contratacion(BaseModel):
     id = AutoField(primary_key=True)
@@ -91,7 +91,7 @@ class Contratacion(BaseModel):
     def __str__(self):
         return self.nro_contratacion
     class Meta:
-        db_table = 'Contratacion'
+        db_table = 'Contrataciones'
 
 
 class TipoObra(BaseModel):
@@ -100,7 +100,7 @@ class TipoObra(BaseModel):
     def __str__(self):
         return self.tipo
     class Meta:
-        db_table = 'TipoObra'
+        db_table = 'TipoObras'
 
 class Relacion(BaseModel):
     id = AutoField(primary_key=True)
@@ -112,3 +112,7 @@ class Relacion(BaseModel):
     id_contratacion = ForeignKeyField(Contratacion, backref='id')
     id_etapas = ForeignKeyField(Etapa, backref='id')
     id_licitaciones = ForeignKeyField(Licitacion, backref='id')
+    def __str__(self):
+        pass
+    class Meta:
+        db_table = 'Relaciones'
