@@ -1,4 +1,6 @@
 from abc import ABC
+import pandas as pd #Importamos PANDAS para importar el dataset de "observatorio-de-obras-urbanas.csv"
+import numpy as np #Importamos NUMPY para la manipulaciòn del dataset.
 
 class GestionarObra(ABC):
     def __init__(self):
