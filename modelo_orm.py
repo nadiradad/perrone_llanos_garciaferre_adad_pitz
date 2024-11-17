@@ -17,3 +17,98 @@ except OperationalError as e:
 class BaseModel(Model):
     class Meta:
         database = sqlite_db
+
+class Obra(BaseModel):
+    id = AutoField(primary_key=True)
+    nombre = CharField()
+    descripcion = TextField()
+    expediente_numero = CharField()
+    mano_obra = IntegerField()
+    destacada = CharField(max_length=2)
+    fecha_inicio = DateField()
+    fecha_fin_inicial = DateField()
+    plazo_meses = IntegerField()
+    def __str__(self):
+        return self.nombre
+    class Meta:
+        db_table = 'Obras'
+
+class Area(BaseModel):
+    id = AutoField(primary_key=True)
+    area_responsable = CharField()
+    def __str__(self):
+        return self.area_responsable
+    class Meta:
+        db_table = 'Areas'
+
+class FuenteFinanciamiento(BaseModel):
+    id = AutoField(primary_key=True)
+    financiamiento = CharField()
+    def __str__(self):
+        return self.financiamiento
+    class Meta:
+        db_table = 'FuenteFinanciamientos'
+
+class Comuna(BaseModel):
+    id = AutoField(primary_key=True)
+    barrio = CharField()
+    comuna = IntegerField()
+    def __str__(self):
+        return self.barrio
+    class Meta:
+        db_table = 'Comunas'
+
+class Etapa(BaseModel):
+    id = AutoField(primary_key=True)
+    etapa = CharField()
+    porcentaje_avance = IntegerField()
+    def __str__(self):
+        return self.etapa
+    class Meta:
+        db_table = 'Etapas'
+
+class Licitacion(BaseModel):
+    id = AutoField(primary_key=True)
+    licitacion_oferta_empresa = CharField()
+    monto_contrato = FloatField()
+    def __str__(self):
+        return self.licitacion_oferta_empresa
+    class Meta:
+        db_table = 'Licitacion'
+
+class TipoContratacion(BaseModel):
+    id = AutoField(primary_key=True)
+    contratacion_tipo = CharField()
+    def __str__(self):
+        return self.contratacion_tipo
+    class Meta:
+        db_table = 'TipoContratacion'
+
+class Contratacion(BaseModel):
+    id = AutoField(primary_key=True)
+    nro_contratacion = CharField()
+    id_contratacion_tipo = ForeignKeyField(TipoContratacion, backref='id')
+    def __str__(self):
+        return self.nro_contratacion
+    class Meta:
+        db_table = 'Contratacion'
+
+
+class TipoObra(BaseModel):
+    id = AutoField(primary_key=True)
+    tipo = CharField()
+    def __str__(self):
+        return self.tipo
+    class Meta:
+        db_table = 'TipoObra'
+
+class Relacion(BaseModel):
+    id = AutoField(primary_key=True)
+    id_obras = ForeignKeyField(Obra, backref='id')
+    id_comuna = ForeignKeyField(Comuna, backref='id')
+    id_area_responsable = ForeignKeyField(Area, backref='id')
+    id_tipo = ForeignKeyField(TipoObra, backref='id')
+    id_financiamiento = ForeignKeyField(FuenteFinanciamiento, backref='id')
+    id_contratacion = ForeignKeyField(Contratacion, backref='id')
+    id_etapas = ForeignKeyField(Etapa, backref='id')
+    id_licitaciones = ForeignKeyField(Licitacion, backref='id')
