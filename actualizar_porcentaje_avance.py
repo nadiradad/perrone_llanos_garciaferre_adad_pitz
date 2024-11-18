@@ -3,7 +3,7 @@ def actualizar_porcentaje_avance(self):
     """
     Obtiene el porcentaje de avance de la obra.
     """
-    return self._porcentaje_avance
+    return self.actualizar_porcentaje_avance
 
 @actualizar_porcentaje_avance.setter
 def actualizar_porcentaje_avance(self, nuevo_porcentaje):
