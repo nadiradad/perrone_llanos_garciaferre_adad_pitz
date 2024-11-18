@@ -1,7 +1,7 @@
 import pandas as pd
 import peewee from *
 from abc import ABC, abstractmethod
-
+from modelo_orm import *
 class GestionarObra(ABC):
     def __init__(self):
         super().__init__()
@@ -10,9 +10,6 @@ class GestionarObra(ABC):
     @abstractmethod
     def limpiar_datos(cls, df: pd.DataFrame) -> pd.DataFrame:
        pass
-
-    
-    
 
     def extraer_datos():
         """que debe incluir las sentencias necesarias para manipular el dataset a
@@ -36,78 +33,72 @@ través de un objeto Dataframe del módulo “pandas”."""
                             ,TipoContratacion
                             ,Contratacion
                             ,TipoObra
-                            ,Relacion])  # no problems.
+                            ,Relacion])  
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
             sqlite_db.close()
 
-    def limpiar_datos():
-       
-        
-
     def cargar_datos(df):
+        for index, row in df.iterrows():
+            obra = Obra.create(
+                nombre=row['nombre'],
+                descripcion=row['descripcion'],
+                expediente_numero=row['expediente_numero'],
+                mano_obra=row['mano_obra'],
+                destacada=row['destacada'],
+                fecha_inicio=row['fecha_inicio'],
+                fecha_fin_inicial=row['fecha_fin_inicial'],
+                plazo_meses=row['plazo_meses']
+            )
 
-    for index, row in df.iterrows():
-        obra = Obra.create(
-            nombre=row['nombre'],
-            descripcion=row['descripcion'],
-            expediente_numero=row['expediente_numero'],
-            mano_obra=row['mano_obra'],
-            destacada=row['destacada'],
-            fecha_inicio=row['fecha_inicio'],
-            fecha_fin_inicial=row['fecha_fin_inicial'],
-            plazo_meses=row['plazo_meses']
-        )
-        
-        comuna = Comuna.create(
-            barrio=row['barrio'],
-            comuna=row['comuna']
-        )
-        
-        area = Area.create(
-            area_responsable=row['area_responsable']
-        )
-        
-        fuente_financiamiento = FuenteFinanciamiento.create(
-            financiamiento=row['financiamiento']
-        )
-        
-        tipo_obra = TipoObra.create(
-            tipo=row['tipo']
-        )
-        
-        etapa = Etapa.create(
-            etapa=row['etapa'],
-            porcentaje_avance=row['porcentaje_avance']
-        )
-        
-        licitacion = Licitacion.create(
-            licitacion_oferta_empresa=row['licitacion_oferta_empresa'],
-            monto_contrato=row['monto_contrato']
-        )
-        
-        tipo_contratacion = TipoContratacion.create(
-            contratacion_tipo=row['contratacion_tipo']
-        )
-        
-        contratacion = Contratacion.create(
-            nro_contratacion=row['nro_contratacion'],
-            id_contratacion_tipo=tipo_contratacion
-        )
-        
-        Relacion.create(
-            id_obras=obra,
-            id_comuna=comuna,
-            id_area_responsable=area,
-            id_tipo=tipo_obra,
-            id_financiamiento=fuente_financiamiento,
-            id_contratacion=contratacion,
-            id_etapas=etapa,
-            id_licitaciones=licitacion
-        )
-        print("Datos cargados exitosamente.")
+            comuna = Comuna.create(
+                barrio=row['barrio'],
+                comuna=row['comuna']
+            )
 
-        
+            area = Area.create(
+                area_responsable=row['area_responsable']
+            )
+
+            fuente_financiamiento = FuenteFinanciamiento.create(
+                financiamiento=row['financiamiento']
+            )
+
+            tipo_obra = TipoObra.create(
+                tipo=row['tipo']
+            )
+
+            etapa = Etapa.create(
+                etapa=row['etapa'],
+                porcentaje_avance=row['porcentaje_avance']
+            )
+
+            licitacion = Licitacion.create(
+                licitacion_oferta_empresa=row['licitacion_oferta_empresa'],
+                monto_contrato=row['monto_contrato']
+            )
+
+            tipo_contratacion = TipoContratacion.create(
+                contratacion_tipo=row['contratacion_tipo']
+            )
+
+            contratacion = Contratacion.create(
+                nro_contratacion=row['nro_contratacion'],
+                id_contratacion_tipo=tipo_contratacion
+            )
+
+            Relacion.create(
+                id_obras=obra,
+                id_comuna=comuna,
+                id_area_responsable=area,
+                id_tipo=tipo_obra,
+                id_financiamiento=fuente_financiamiento,
+                id_contratacion=contratacion,
+                id_etapas=etapa,
+                id_licitaciones=licitacion
+            )
+            print("Datos cargados exitosamente.")
+            
     def nueva_obra():
         try:
             nombre = input("Nombre de la obra: ")
@@ -118,7 +109,6 @@ través de un objeto Dataframe del módulo “pandas”."""
             fecha_fin_inicial = input("Fecha de fin (YYYY-MM-DD, opcional): ")
             destacada = input("Ingrese si es destacada: ")
             plazo_meses = int(input("Ingrese la cantidad de meses que durarà la obra: "))
-
             
             nueva_obra = Obra(
                 nombre_obra=nombre,
@@ -141,15 +131,15 @@ través de un objeto Dataframe del módulo “pandas”."""
 
     def obtener_listado_areas_responsables():
         try:
-            query = (Areas
-            .select(Areas.area_responsable)
+            query = (Area
+            .select(Area.area_responsable)
             .distinct())
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
 
     def obtener_listado_tipos_obra():
         try:
-            query = (TipoObras
+            query = (TipoObra
                      .select tipo)
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
@@ -157,10 +147,10 @@ través de un objeto Dataframe del módulo “pandas”."""
     def obtener_cantidad_obras_por_etapa():
         try: 
             query = (
-            Relaciones
-            .select(fn.COUNT(Relaciones.id).alias('cantidad_obras'), Etapas.etapa)
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .group_by(Etapas.etapa)
+            Relacion
+            .select(fn.COUNT(Relacion.id).alias('cantidad_obras'), Etapa.etapa)
+            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            .group_by(Etapa.etapa)
             )
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
@@ -168,33 +158,33 @@ través de un objeto Dataframe del módulo “pandas”."""
     def obtener_cantidad_obras_monto_por_obra():
         try:
             query = (
-            Relaciones
+            Relacion
             .select(
-            fn.COUNT(Obras.id).alias('cantidad_obras'),
-            Obras.name.alias('nombre_obra'),
-            Licitaciones.monto_contrato.alias('monto_contrato')
+            fn.COUNT(Obra.id).alias('cantidad_obras'),
+            Obra.name.alias('nombre_obra'),
+            Licitacion.monto_contrato.alias('monto_contrato')
             )   
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Licitaciones, on=(Relaciones.id_licitaciones == Licitaciones.id)))
+            .join(Obra, on=(Relacion.id_obras == Obra.id))
+            .join(Licitacion, on=(Relacion.id_licitaciones == Licitacion.id)))
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
     
     def obtener_barrios_por_comuna():
         try:
             query1 = (
-            Comunas
-            .select(Comunas.barrio)
-            .where(Comunas.comuna == 1)
+            Comuna
+            .select(Comuna.barrio)
+            .where(Comuna.comuna == 1)
             )
             query2 = (
-            Comunas
-            .select(Comunas.barrio)
-            .where(Comunas.comuna == 2)
+            Comuna
+            .select(Comuna.barrio)
+            .where(Comuna.comuna == 2)
             )
             query3 = (
-            Comunas
-            .select(Comunas.barrio)
-            .where(Comunas.comuna == 3)
+            Comuna
+            .select(Comuna.barrio)
+            .where(Comuna.comuna == 3)
             )
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
@@ -202,23 +192,23 @@ través de un objeto Dataframe del módulo “pandas”."""
     def obtener_cantidad_obras_finalizadas_monto_total_comuna1():
         try:
             query = (
-            Relaciones
-            .select(fn.COUNT(Obras.id).alias('cantidad_obras'), fn.Sum(Licitaciones.monto_contrato))
-            .where(Etapas.etapa == 'finalizada')   
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .join(Licitaciones, on=(Relaciones.id_licitaciones == Licitaciones.id)))
+            Relacion
+            .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.Sum(Licitacion.monto_contrato))
+            .where(Etapa.etapa == 'finalizada')   
+            .join(Obra, on=(Relacion.id_obras == Obra.id))
+            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            .join(Licitacion, on=(Relacion.id_licitaciones == Licitacion.id)))
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
 
     def obtener_cantidad_obras_finalizadas_menos_24_meses():
         try:
             query=(
-            Relaciones
-            .select(fn.COUNT(Obras.id).alias('cantidad_obras'))
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .where((Etapas.etapa == 'finalizada') & (Obras.plazo_meses < 24))
+            Relacion
+            .select(fn.COUNT(Obra.id).alias('cantidad_obras'))
+            .join(Obra, on=(Relacion.id_obras == Obra.id))
+            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            .where((Etapa.etapa == 'finalizada') & (Obra.plazo_meses < 24))
             )
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
@@ -227,14 +217,14 @@ través de un objeto Dataframe del módulo “pandas”."""
     def obtener_porcentaje_obras_finalizadas(): 
         try:
             query=(
-            Relaciones
+            Relacion
             .select(
-            (fn.COUNT(Relaciones.id) / fn.COUNT(
-            Relaciones
+            (fn.COUNT(Relacion.id) / fn.COUNT(
+            Relacion
             .select()
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .where(Etapas.etapa == 'finalizada')
+            .join(Obra, on=(Relacion.id_obras == Obra.id))
+            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            .where(Etapa.etapa == 'finalizada')
             ) * 100).alias('porcentaje_finalizadas')
             )
             )
@@ -244,8 +234,8 @@ través de un objeto Dataframe del módulo “pandas”."""
     def obtener_cantidad_total_mano_obra():
         try:
             query=(
-            Obras
-            .select(fn.Sum(Obras.mano_obra)
+            Obra
+            .select(fn.Sum(Obra.mano_obra)
             )
             )
         except peewee.IntegrityError as e:
