@@ -1,5 +1,6 @@
 import pandas as pd
-import peewee from *
+from peewee import *
+from modelo_orm import *
 from abc import ABC, abstractmethod
 from modelo_orm import *
 class GestionarObra(ABC):
@@ -21,7 +22,7 @@ través de un objeto Dataframe del módulo “pandas”."""
         pass
 
     def mapear_orm():
-        sqlite_db.init('obras_urbanas.db')  # database is now initialized NO SE SI ES NECESARIO
+        sqlite_db.init('obras_urbanas.db') 
         sqlite_db.connect()
         try:
             sqlite_db.create_tables([Obra
@@ -33,8 +34,8 @@ través de un objeto Dataframe del módulo “pandas”."""
                             ,TipoContratacion
                             ,Contratacion
                             ,TipoObra
-                            ,Relacion])  
-        except peewee.IntegrityError as e:
+                            ,Relacion])  # no problems.
+        except Exception as e:
             print(f'El error de peewee: {e}')
             sqlite_db.close()
 
@@ -134,14 +135,14 @@ través de un objeto Dataframe del módulo “pandas”."""
             query = (Area
             .select(Area.area_responsable)
             .distinct())
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
     def obtener_listado_tipos_obra():
         try:
             query = (TipoObra
-                     .select tipo)
-        except peewee.IntegrityError as e:
+                     .select(TipoObra.tipo))
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
     def obtener_cantidad_obras_por_etapa():
@@ -152,7 +153,7 @@ través de un objeto Dataframe del módulo “pandas”."""
             .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
             .group_by(Etapa.etapa)
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
     
     def obtener_cantidad_obras_monto_por_obra():
@@ -165,8 +166,8 @@ través de un objeto Dataframe del módulo “pandas”."""
             Licitacion.monto_contrato.alias('monto_contrato')
             )   
             .join(Obra, on=(Relacion.id_obras == Obra.id))
-            .join(Licitacion, on=(Relacion.id_licitaciones == Licitacion.id)))
-        except peewee.IntegrityError as e:
+            .join(Licitacion, on=(Relaciones.id_licitaciones == Licitacion.id)))
+        except Exception as e:
             print(f'El error de peewee: {e}')
     
     def obtener_barrios_por_comuna():
@@ -186,7 +187,7 @@ través de un objeto Dataframe del módulo “pandas”."""
             .select(Comuna.barrio)
             .where(Comuna.comuna == 3)
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
     
     def obtener_cantidad_obras_finalizadas_monto_total_comuna1():
@@ -198,17 +199,17 @@ través de un objeto Dataframe del módulo “pandas”."""
             .join(Obra, on=(Relacion.id_obras == Obra.id))
             .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
             .join(Licitacion, on=(Relacion.id_licitaciones == Licitacion.id)))
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
     def obtener_cantidad_obras_finalizadas_menos_24_meses():
         try:
             query=(
-            Relacion
-            .select(fn.COUNT(Obra.id).alias('cantidad_obras'))
-            .join(Obra, on=(Relacion.id_obras == Obra.id))
-            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
-            .where((Etapa.etapa == 'finalizada') & (Obra.plazo_meses < 24))
+            Relaciones
+            .select(fn.COUNT(Obras.id).alias('cantidad_obras'))
+            .join(Obras, on=(Relaciones.id_obras == Obras.id))
+            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
+            .where((Etapas.etapa == 'finalizada') & (Obras.plazo_meses < 24))
             )
         except peewee.IntegrityError as e:
             print(f'El error de peewee: {e}')
@@ -228,7 +229,7 @@ través de un objeto Dataframe del módulo “pandas”."""
             ) * 100).alias('porcentaje_finalizadas')
             )
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
         
     def obtener_cantidad_total_mano_obra():
@@ -238,7 +239,7 @@ través de un objeto Dataframe del módulo “pandas”."""
             .select(fn.Sum(Obra.mano_obra)
             )
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
     def obtener_monto_total_inversion():
@@ -248,7 +249,7 @@ través de un objeto Dataframe del módulo “pandas”."""
             .select(fn.Sum(Licitacion.monto_contrato)
             )
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
 
