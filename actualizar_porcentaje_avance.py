@@ -12,7 +12,7 @@ def actualizar_porcentaje_avance(self, nuevo_porcentaje):
 
     :param nuevo_porcentaje: float, porcentaje a establecer.
     """
-    if 0.0 <= nuevo_porcentaje <= 100.0:
+    if 0 <= nuevo_porcentaje <= 100:
         self.porcentaje_avance = nuevo_porcentaje
         self.save()
         print(f"Porcentaje de avance actualizado a {nuevo_porcentaje}%.")
@@ -25,6 +25,6 @@ def save(self):
     """
     print("Datos guardados correctamente.")
 
-nuevo_porcentaje = float(input("Ingrese el porcentaje de avance: "))
+nuevo_porcentaje = int(input("Ingrese el porcentaje de avance: "))
 
 Obra.actualizar_porcentaje_avance = nuevo_porcentaje
