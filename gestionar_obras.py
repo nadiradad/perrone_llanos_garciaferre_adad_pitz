@@ -1,5 +1,6 @@
 import pandas as pd
-import peewee from *
+from peewee import *
+from modelo_orm import *
 from abc import ABC, abstractmethod
 
 class GestionarObra(ABC):
@@ -37,15 +38,14 @@ través de un objeto Dataframe del módulo “pandas”."""
                             ,Contratacion
                             ,TipoObra
                             ,Relacion])  # no problems.
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
             sqlite_db.close()
 
-    def limpiar_datos():
-       
-        
+def limpiar_datos():
+    pass
 
-    def cargar_datos(df):
+def cargar_datos(df):
 
     for index, row in df.iterrows():
         obra = Obra.create(
@@ -141,114 +141,114 @@ través de un objeto Dataframe del módulo “pandas”."""
 
     def obtener_listado_areas_responsables():
         try:
-            query = (Areas
-            .select(Areas.area_responsable)
+            query = (Area
+            .select(Area.area_responsable)
             .distinct())
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
     def obtener_listado_tipos_obra():
         try:
-            query = (TipoObras
-                     .select tipo)
-        except peewee.IntegrityError as e:
+            query = (TipoObra
+                     .select(TipoObra.tipo))
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
     def obtener_cantidad_obras_por_etapa():
         try: 
             query = (
-            Relaciones
-            .select(fn.COUNT(Relaciones.id).alias('cantidad_obras'), Etapas.etapa)
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .group_by(Etapas.etapa)
+            Relacion
+            .select(fn.COUNT(Relacion.id).alias('cantidad_obras'), Etapa.etapa)
+            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            .group_by(Etapa.etapa)
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
     
     def obtener_cantidad_obras_monto_por_obra():
         try:
             query = (
-            Relaciones
+            Relacion
             .select(
-            fn.COUNT(Obras.id).alias('cantidad_obras'),
-            Obras.name.alias('nombre_obra'),
-            Licitaciones.monto_contrato.alias('monto_contrato')
+            fn.COUNT(Obra.id).alias('cantidad_obras'),
+            Obra.name.alias('nombre_obra'),
+            Licitacion.monto_contrato.alias('monto_contrato')
             )   
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Licitaciones, on=(Relaciones.id_licitaciones == Licitaciones.id)))
-        except peewee.IntegrityError as e:
+            .join(Obra, on=(Relacion.id_obras == Obra.id))
+            .join(Licitacion, on=(Relaciones.id_licitaciones == Licitacion.id)))
+        except Exception as e:
             print(f'El error de peewee: {e}')
     
     def obtener_barrios_por_comuna():
         try:
             query1 = (
-            Comunas
-            .select(Comunas.barrio)
-            .where(Comunas.comuna == 1)
+            Comuna
+            .select(Comuna.barrio)
+            .where(Comuna.comuna == 1)
             )
             query2 = (
-            Comunas
-            .select(Comunas.barrio)
-            .where(Comunas.comuna == 2)
+            Comuna
+            .select(Comuna.barrio)
+            .where(Comuna.comuna == 2)
             )
             query3 = (
-            Comunas
-            .select(Comunas.barrio)
-            .where(Comunas.comuna == 3)
+            Comuna
+            .select(Comuna.barrio)
+            .where(Comuna.comuna == 3)
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
     
     def obtener_cantidad_obras_finalizadas_monto_total_comuna1():
         try:
             query = (
-            Relaciones
-            .select(fn.COUNT(Obras.id).alias('cantidad_obras'), fn.Sum(Licitaciones.monto_contrato))
-            .where(Etapas.etapa == 'finalizada')   
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .join(Licitaciones, on=(Relaciones.id_licitaciones == Licitaciones.id)))
-        except peewee.IntegrityError as e:
+            Relacion
+            .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.Sum(Licitacion.monto_contrato))
+            .where(Etapa.etapa == 'finalizada')   
+            .join(Obra, on=(Relacion.id_obras == Obra.id))
+            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            .join(Licitacion, on=(Relacion.id_licitaciones == Licitacion.id)))
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
     def obtener_cantidad_obras_finalizadas_menos_24_meses():
         try:
             query=(
-            Relaciones
-            .select(fn.COUNT(Obras.id).alias('cantidad_obras'))
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .where((Etapas.etapa == 'finalizada') & (Obras.plazo_meses < 24))
+            Relacion
+            .select(fn.COUNT(Obra.id).alias('cantidad_obras'))
+            .join(Obra, on=(Relacion.id_obras == Obra.id))
+            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            .where((Etapa.etapa == 'finalizada') & (Obra.plazo_meses < 24))
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
     
     # tengo dudas sobre este. Y me falta poner el fetchall o for en cada parte para que me haga un print
     def obtener_porcentaje_obras_finalizadas(): 
         try:
             query=(
-            Relaciones
+            Relacion
             .select(
-            (fn.COUNT(Relaciones.id) / fn.COUNT(
-            Relaciones
+            (fn.COUNT(Relacion.id) / fn.COUNT(
+            Relacion
             .select()
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .where(Etapas.etapa == 'finalizada')
+            .join(Obra, on=(Relacion.id_obras == Obra.id))
+            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            .where(Etapa.etapa == 'finalizada')
             ) * 100).alias('porcentaje_finalizadas')
             )
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
         
     def obtener_cantidad_total_mano_obra():
         try:
             query=(
-            Obras
-            .select(fn.Sum(Obras.mano_obra)
+            Obra
+            .select(fn.Sum(Obra.mano_obra)
             )
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
     def obtener_monto_total_inversion():
@@ -258,7 +258,7 @@ través de un objeto Dataframe del módulo “pandas”."""
             .select(fn.Sum(Licitacion.monto_contrato)
             )
             )
-        except peewee.IntegrityError as e:
+        except Exception as e:
             print(f'El error de peewee: {e}')
 
 
