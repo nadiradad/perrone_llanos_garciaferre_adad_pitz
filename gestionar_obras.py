@@ -1,4 +1,5 @@
 import pandas as pd
+import peewee from *
 from abc import ABC, abstractmethod
 
 class GestionarObra(ABC):
@@ -49,12 +50,35 @@ través de un objeto Dataframe del módulo “pandas”."""
         pass
 
     def nueva_obra():
-        """que debe incluir las sentencias necesarias para crear nuevas instancias de Obra. Se deben considerar los siguientes requisitos:
-        • Todos los valores requeridos para la creación de estas nuevas instancias deben ser ingresados por teclado.
-        • Para los valores correspondientes a registros de tablas relacionadas (foreign key), el valor ingresado debe buscarse en la tabla correspondiente mediante sentencia de búsqueda ORM, para obtener la instancia relacionada, si el valor ingresado no existe en la tabla, se le debe informar al usuario y solicitarle un nuevo ingreso por teclado.
-        • Para persistir en la BD los datos de la nueva instancia de Obra debe usarse el método save() de Model del módulo “peewee”. 
-        • Este método debe retornar la nueva instancia de obra."""
-        pass
+        try:
+            nombre = input("Nombre de la obra: ")
+            descripcion = input("Ingrese la descripción de la obra: ")
+            expediente_numero = input("Ingrese el número de expediente")
+            mano_obra = int(input("Ingrese cantidad de mano de obra: "))
+            fecha_inicio = input("Fecha de inicio (YYYY-MM-DD): ")
+            fecha_fin_inicial = input("Fecha de fin (YYYY-MM-DD, opcional): ")
+            destacada = input("Ingrese si es destacada: ")
+            plazo_meses = int(input("Ingrese la cantidad de meses que durarà la obra: "))
+
+            
+            nueva_obra = Obra(
+                nombre_obra=nombre,
+                descripcion=descripcion,
+                expediente_numero=expediente_numero,
+                fecha_inicio=fecha_inicio,
+                fecha_fin_inicial=fecha_fin_inicial if fecha_fin_inicial else None,
+                mano_obra=mano_obra,
+                destacada=destacada,
+                plazo_meses=plazo_meses
+            )
+            nueva_obra.save()
+            print("Nueva obra registrada con éxito.")
+            return nueva_obra
+
+        except DoesNotExist:
+            print("La categoría ingresada no existe.")
+        except Exception as e:
+            print(f"Error: {e}")
 
     def obtener_listado_areas_responsables():
         try:
