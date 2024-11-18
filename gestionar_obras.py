@@ -166,7 +166,7 @@ través de un objeto Dataframe del módulo “pandas”."""
             Licitacion.monto_contrato.alias('monto_contrato')
             )   
             .join(Obra, on=(Relacion.id_obras == Obra.id))
-            .join(Licitacion, on=(Relaciones.id_licitaciones == Licitacion.id)))
+            .join(Licitacion, on=(Relacion.id_licitaciones == Licitacion.id)))
         except Exception as e:
             print(f'El error de peewee: {e}')
     
