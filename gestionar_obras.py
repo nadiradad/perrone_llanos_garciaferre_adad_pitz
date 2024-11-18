@@ -1,8 +1,17 @@
-from abc import ABC
+import pandas as pd
+from abc import ABC, abstractmethod
 
 class GestionarObra(ABC):
     def __init__(self):
         super().__init__()
+    
+    @classmethod
+    @abstractmethod
+    def limpiar_datos(cls, df: pd.DataFrame) -> pd.DataFrame:
+       pass
+
+    
+    
 
     def extraer_datos():
         """que debe incluir las sentencias necesarias para manipular el dataset a
@@ -32,8 +41,8 @@ través de un objeto Dataframe del módulo “pandas”."""
             sqlite_db.close()
 
     def limpiar_datos():
-        """que debe incluir las sentencias necesarias para realizar la “limpieza” de los datos nulos y no accesibles del Dataframe."""
-        pass
+       
+        
 
     def cargar_datos(df):
 
