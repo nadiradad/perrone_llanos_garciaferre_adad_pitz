@@ -20,7 +20,7 @@ class BaseModel(Model):
 
 class Obra(BaseModel):
     id = AutoField(primary_key=True)
-    nombre = CharField()
+    nombre = CharField(null=False)
     descripcion = TextField()
     expediente_numero = CharField()
     mano_obra = IntegerField()
@@ -28,6 +28,8 @@ class Obra(BaseModel):
     fecha_inicio = DateField()
     fecha_fin_inicial = DateField()
     plazo_meses = IntegerField()
+    monto_contrato = FloatField()
+    porcentaje_avance = IntegerField()
     def __str__(self):
         return self.nombre
     class Meta:
@@ -52,7 +54,7 @@ class FuenteFinanciamiento(BaseModel):
 class Comuna(BaseModel):
     id = AutoField(primary_key=True)
     barrio = CharField()
-    comuna = IntegerField()
+    comuna = IntegerField(null=False)
     def __str__(self):
         return self.barrio
     class Meta:
@@ -61,20 +63,18 @@ class Comuna(BaseModel):
 class Etapa(BaseModel):
     id = AutoField(primary_key=True)
     etapa = CharField()
-    porcentaje_avance = IntegerField()
     def __str__(self):
         return self.etapa
     class Meta:
         db_table = 'Etapas'
 
-class Licitacion(BaseModel):
+class Empresa(BaseModel):
     id = AutoField(primary_key=True)
     licitacion_oferta_empresa = CharField()
-    monto_contrato = FloatField()
     def __str__(self):
         return self.licitacion_oferta_empresa
     class Meta:
-        db_table = 'Licitaciones'
+        db_table = 'Empresas'
 
 class TipoContratacion(BaseModel):
     id = AutoField(primary_key=True)
@@ -87,7 +87,7 @@ class TipoContratacion(BaseModel):
 class Contratacion(BaseModel):
     id = AutoField(primary_key=True)
     nro_contratacion = CharField()
-    id_contratacion_tipo = ForeignKeyField(TipoContratacion, backref='id')
+    id_contratacion_tipo = ForeignKeyField(TipoContratacion, backref='contrataciones')
     def __str__(self):
         return self.nro_contratacion
     class Meta:
@@ -104,14 +104,14 @@ class TipoObra(BaseModel):
 
 class Relacion(BaseModel):
     id = AutoField(primary_key=True)
-    id_obras = ForeignKeyField(Obra, backref='id')
-    id_comuna = ForeignKeyField(Comuna, backref='id')
-    id_area_responsable = ForeignKeyField(Area, backref='id')
-    id_tipo = ForeignKeyField(TipoObra, backref='id')
-    id_financiamiento = ForeignKeyField(FuenteFinanciamiento, backref='id')
-    id_contratacion = ForeignKeyField(Contratacion, backref='id')
-    id_etapas = ForeignKeyField(Etapa, backref='id')
-    id_licitaciones = ForeignKeyField(Licitacion, backref='id')
+    id_obras = ForeignKeyField(Obra, backref='Relaciones')
+    id_comuna = ForeignKeyField(Comuna, backref='Relaciones')
+    id_area_responsable = ForeignKeyField(Area, backref='Relaciones')
+    id_tipo = ForeignKeyField(TipoObra, backref='Relaciones')
+    id_financiamiento = ForeignKeyField(FuenteFinanciamiento, backref='Relaciones')
+    id_contratacion = ForeignKeyField(Contratacion, backref='Relaciones')
+    id_etapas = ForeignKeyField(Etapa, backref='Relaciones')
+    id_empresas = ForeignKeyField(Empresa, backref='Relaciones')
     def __str__(self):
         pass
     class Meta:

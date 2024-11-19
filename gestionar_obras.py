@@ -2,7 +2,6 @@ import pandas as pd
 from peewee import *
 from modelo_orm import *
 from abc import ABC, abstractmethod
-from modelo_orm import *
 class GestionarObra(ABC):
     def __init__(self):
         super().__init__()
@@ -13,24 +12,27 @@ class GestionarObra(ABC):
        pass
 
     def extraer_datos():
-        """que debe incluir las sentencias necesarias para manipular el dataset a
-través de un objeto Dataframe del módulo “pandas”."""
-        pass
+        archivo_csv = "/observatorio-de-obras-urbanas.csv"
+    
+        try:
+            df = pd.read_csv(archivo_csv, sep=",")
+            return df
+        except FileNotFoundError as e:
+            print("Error al conectar con el dataset.", e)
+            return False
 
     def conectar_db():
-        """que debe incluir las sentencias necesarias para realizar la conexión a la base de datos “obras_urbanas.db”."""
-        pass
-
-    def mapear_orm():
         sqlite_db.init('obras_urbanas.db') 
         sqlite_db.connect()
+
+    def mapear_orm():
         try:
             sqlite_db.create_tables([Obra
                             ,Area
                             ,FuenteFinanciamiento
                             ,Comuna
                             ,Etapa
-                            ,Licitacion
+                            ,Empresa
                             ,TipoContratacion
                             ,Contratacion
                             ,TipoObra
@@ -74,7 +76,7 @@ través de un objeto Dataframe del módulo “pandas”."""
                 porcentaje_avance=row['porcentaje_avance']
             )
 
-            licitacion = Licitacion.create(
+            empresa = Empresa.create(
                 licitacion_oferta_empresa=row['licitacion_oferta_empresa'],
                 monto_contrato=row['monto_contrato']
             )
@@ -96,7 +98,7 @@ través de un objeto Dataframe del módulo “pandas”."""
                 id_financiamiento=fuente_financiamiento,
                 id_contratacion=contratacion,
                 id_etapas=etapa,
-                id_licitaciones=licitacion
+                id_empresas=empresa
             )
             print("Datos cargados exitosamente.")
             
@@ -163,10 +165,10 @@ través de un objeto Dataframe del módulo “pandas”."""
             .select(
             fn.COUNT(Obra.id).alias('cantidad_obras'),
             Obra.name.alias('nombre_obra'),
-            Licitacion.monto_contrato.alias('monto_contrato')
+            Empresa.monto_contrato.alias('monto_contrato')
             )   
             .join(Obra, on=(Relacion.id_obras == Obra.id))
-            .join(Licitacion, on=(Relacion.id_licitaciones == Licitacion.id)))
+            .join(Empresa, on=(Relacion.id_empresas == Empresa.id)))
         except Exception as e:
             print(f'El error de peewee: {e}')
     
@@ -194,11 +196,11 @@ través de un objeto Dataframe del módulo “pandas”."""
         try:
             query = (
             Relacion
-            .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.Sum(Licitacion.monto_contrato))
+            .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.Sum(Empresa.monto_contrato))
             .where(Etapa.etapa == 'finalizada')   
             .join(Obra, on=(Relacion.id_obras == Obra.id))
             .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
-            .join(Licitacion, on=(Relacion.id_licitaciones == Licitacion.id)))
+            .join(Empresa, on=(Relacion.id_empresas == Empresa.id)))
         except Exception as e:
             print(f'El error de peewee: {e}')
 
@@ -245,8 +247,8 @@ través de un objeto Dataframe del módulo “pandas”."""
     def obtener_monto_total_inversion():
         try:
             query=(
-            Licitacion
-            .select(fn.Sum(Licitacion.monto_contrato)
+            Empresa
+            .select(fn.Sum(Empresa.monto_contrato)
             )
             )
         except Exception as e:
