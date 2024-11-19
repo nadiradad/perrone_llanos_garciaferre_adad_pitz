@@ -40,9 +40,7 @@ class Obra(BaseModel):
        except Exception as e:
            print(f"Error: {e}")
 
-    def iniciar_contratacion():
-        nro_contratacion = input('Ingrese el numero de contratacion: ')
-        contratacion_tipo = input('Ingrese el tipo de contratacion: ')
+    def iniciar_contratacion(nro_contratacion, contratacion_tipo):
         try:
             tipo_contratacion_encontrada = TipoContratacion.get_or_none(TipoContratacion.contratacion_tipo == contratacion_tipo)
 
@@ -68,10 +66,8 @@ class Obra(BaseModel):
     def adjudicar_obra(self, licitacion_oferta_empresa, expediente_numero):
         try:
             empresa = Empresa.get_or_none(Empresa.licitacion_oferta_empresa == licitacion_oferta_empresa)
-
             if empresa:
                 relacion = Relacion.get_or_none(Relacion.id_empresas == empresa.id, Relacion.id_obras == self.id)
-
                 if relacion:
                     self.licitacion_oferta_empresa = licitacion_oferta_empresa
                     self.expediente_numero = expediente_numero
@@ -81,30 +77,21 @@ class Obra(BaseModel):
                     print(f"No existe una relación válida entre la obra {self.nombre} y la empresa.")
             else:
                 print(f"La empresa con la licitación {licitacion_oferta_empresa} no existe.")
-
         except Exception as e:
             print(f"Error: {e}")
         
-    def iniciar_obra():
-        nombre = input('Ingrese el nombre de la obra: ')
-        descripcion = input('Ingrese una descripción de la obra: ')
-        mano_obra = int(input('Ingrese la cantidad de mano de obra que necesitará: '))
-        destacada = input('Ingrese Si si la obra es destacada: ')
-        fecha_inicio =  input('Ingrese la fecha de inicio: ')
-        fecha_fin_inicial = input('Ingrese la fecha de fin inicial: ')
-        fuente_financiamiento = input('Ingrese la fuente de financiamiento: ')
+    def iniciar_obra(nombre, descripcion, mano_obra, destacada, fecha_inicio, fecha_fin_inicial, fuente_financiamiento ):
         try:
             fuente_financiamiento_encontrada = FuenteFinanciamiento.get_or_none(FuenteFinanciamiento.financiamiento == fuente_financiamiento)
-
             if not fuente_financiamiento_encontrada:
                 print("No existe esa fuente de financiamiento.")
                 return None
             try:
                 nueva_obra = Obra(
                     nombre=nombre,
-                    descripcion=descripcion
-                    destacada= destacada,
-                    mano_obra= mano_obra,
+                    descripcion=descripcion,
+                    destacada=destacada,
+                    mano_obra=mano_obra,
                     fecha_inicio = fecha_inicio, 
                     fecha_fin_inicial =fecha_fin_inicial, 
                     financiamiento=fuente_financiamiento_encontrada.id,
@@ -115,7 +102,6 @@ class Obra(BaseModel):
             except Exception as e:
                 print(f"No se pudo crear la contratación. Error: {e}")
                 return None
-
         except Exception as e:
             print(f"No existe el tipo de contratacion deseado. Error: {e}")
             return None
