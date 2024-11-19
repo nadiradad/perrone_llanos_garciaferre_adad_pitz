@@ -123,9 +123,8 @@ class Obra(BaseModel):
     def actualizar_porcentaje_avance():
         pass
 
-    def incrementar_plazo():
+    def incrementar_plazo(self, nuevo_plazo, nombre_obra):
         try:
-            nuevo_plazo = int(input('Ingrese el nuevo plazo en cantidad de meses: '))
             if nuevo_plazo <= 0:
                 print("El plazo debe ser un número positivo.")
                 return None
@@ -133,7 +132,6 @@ class Obra(BaseModel):
             print("Debe ingresar un número entero válido.")
             return None
 
-        nombre_obra = input('Ingrese el nombre de la obra para incrementar el plazo: ')
         try:
             obra = Obra.get_or_none(Obra.nombre == nombre_obra)
             if not obra:
@@ -149,9 +147,8 @@ class Obra(BaseModel):
     def incrementar_mano_obra():
         pass
 
-    def finalizar_obra(self):
+    def finalizar_obra(self, Id):
         try:
-            Id = int(input('Ingrese el Id de la obra a finalizar: '))
             query = (Etapa.update(etapa='Finalizada', porcentaje_avance=100)
                      .where(Obra.id == Id)
                      .join(Relacion, on=(Etapa.id == Relacion.id_etapas))
@@ -175,8 +172,7 @@ class Obra(BaseModel):
             print(mensaje)
             return False
     
-    def rescindir_obra():
-        Id = int(input('Ingrese el Id de la obra a rescindir: '))
+    def rescindir_obra(self,Id):
         try:
             obra_encontrada = Obra.get_or_none(Obra.id == Id)    
             if not obra_encontrada:
