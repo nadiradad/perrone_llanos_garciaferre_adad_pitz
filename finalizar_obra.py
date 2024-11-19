@@ -1,4 +1,3 @@
-
 class Obra(BaseModel):
     id = AutoField(primary_key=True)
     nombre = CharField()
