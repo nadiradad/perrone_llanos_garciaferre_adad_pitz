@@ -194,12 +194,20 @@ class FuenteFinanciamiento(BaseModel):
 
 class Comuna(BaseModel):
     id = AutoField(primary_key=True)
-    barrio = CharField()
     comuna = IntegerField(null=False)
+    def __str__(self):
+        return self.comuna
+    class Meta:
+        db_table = 'Comunas'
+
+class Barrio(BaseModel):
+    id = AutoField(primary_key=True)
+    barrio = CharField()
+    id_comuna = IntegerField(null=False)
     def __str__(self):
         return self.barrio
     class Meta:
-        db_table = 'Comunas'
+        db_table = 'Barrios'
 
 class Etapa(BaseModel):
     id = AutoField(primary_key=True)
@@ -246,7 +254,7 @@ class TipoObra(BaseModel):
 class Relacion(BaseModel):
     id = AutoField(primary_key=True)
     id_obras = ForeignKeyField(Obra, backref='Relaciones')
-    id_comuna = ForeignKeyField(Comuna, backref='Relaciones')
+    id_barrio = ForeignKeyField(Barrio, backref='Relaciones')
     id_area_responsable = ForeignKeyField(Area, backref='Relaciones')
     id_tipo = ForeignKeyField(TipoObra, backref='Relaciones')
     id_financiamiento = ForeignKeyField(FuenteFinanciamiento, backref='Relaciones')
