@@ -135,7 +135,7 @@ class Obra(BaseModel):
 
     def finalizar_obra(self, Id):
         try:
-            query = (Etapa.update(etapa='Finalizada', porcentaje_avance=100)
+            query = (Etapa.update(etapa='Finalizada', porcentaje_avance=100) # REEVEER! OJO CON porcentaje_avance QUE PERTENECE A OBRA
                      .where(Obra.id == Id)
                      .join(Relacion, on=(Etapa.id == Relacion.id_etapas))
                      .join(Obra, on=(Relacion.id_obras == Obra.id)))  

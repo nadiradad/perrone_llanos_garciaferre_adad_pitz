@@ -224,10 +224,11 @@ class ObrasConstruccion(GestionarObra):
             print("Nueva obra registrada con éxito.")
             return nueva_obra
         except Exception as e:
-            print(f"Error: {e}")
+            print(f'Error: {e}')
+            return False
 
     @classmethod
-    def obtener_listado_areas_responsables()->bool:
+    def obtener_listado_areas_responsables(cls) -> bool:
         try:
             query = (Area
             .select(Area.area_responsable))
@@ -236,11 +237,11 @@ class ObrasConstruccion(GestionarObra):
                 print(row.area_responsable) 
             return True 
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
             return False
 
     @classmethod
-    def obtener_listado_tipos_obra():
+    def obtener_listado_tipos_obra(cls) -> bool:
         try:
             query = (TipoObra
                      .select(TipoObra.tipo))
@@ -249,70 +250,110 @@ class ObrasConstruccion(GestionarObra):
                 print(row.tipo) 
             return True 
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
             return False
 
     @classmethod
-    def obtener_cantidad_obras_por_etapa():
-        try: 
+    def obtener_cantidad_obras_por_etapa(cls) -> bool:
+        try:
             query = (
-            Relacion
-            .select(fn.COUNT(Relacion.id).alias('cantidad_obras'), Etapa.etapa)
-            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
-            .group_by(Etapa.etapa)
+                Relacion
+                .select(fn.COUNT(Relacion.id).alias('cantidad_obras'), Etapa.etapa)
+                .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+                .group_by(Etapa.etapa)
             )
-            return query
+            results = query.execute()
+            for row in results:
+                print(f"Etapa: {row.etapa}, Cantidad de Obras: {row.cantidad_obras}")
+            return True
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
+            return False
     
     @classmethod
-    def obtener_cantidad_obras_monto_por_obra():
+    def obtener_cantidad_obras_monto_por_obra(cls) -> bool:
         try:
             query = (
-            Relacion
-            .select(
-            fn.COUNT(Obra.id).alias('cantidad_obras'),
-            Obra.name.alias('nombre_obra'),
-            Empresa.monto_contrato.alias('monto_contrato')
-            )   
-            .join(Obra, on=(Relacion.id_obras == Obra.id))
-            .join(Empresa, on=(Relacion.id_empresas == Empresa.id)))
+                Relacion
+                .select(
+                    fn.COUNT(Obra.id).alias('cantidad_obras'),
+                    Obra.name.alias('nombre_obra'),
+                    Empresa.monto_contrato.alias('monto_contrato')
+                )
+                .join(Obra, on=(Relacion.id_obras == Obra.id))
+                .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+                .group_by(Obra.name, Empresa.monto_contrato)
+            )
+            
+            for row in query.dicts():
+                print(f"Cantidad de obras: {row['cantidad_obras']}, "
+                    f"Nombre de la obra: {row['nombre_obra']}, "
+                    f"Monto del contrato: {row['monto_contrato']}")
+            return True
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
+            return False
 
     @classmethod
-    def obtener_barrios_por_comuna():
+    def obtener_barrios_por_comunas_especificas(cls) -> bool:
         try:
-            query1 = (
-            Comuna
-            .select(Comuna.barrio)
-            .where(Comuna.comuna == 1)
-            )
-            query2 = (
-            Comuna
-            .select(Comuna.barrio)
-            .where(Comuna.comuna == 2)
-            )
-            query3 = (
-            Comuna
-            .select(Comuna.barrio)
-            .where(Comuna.comuna == 3)
-            )
+            comunas_ids = [1, 2, 3]
+
+            query = (Barrio
+                    .select(Comuna.comuna, Barrio.barrio)
+                    .join(Comuna)
+                    .where(Comuna.id.in_(comunas_ids))
+                    .dicts())  
+
+            resultado = {}
+            for fila in query:
+                comuna = fila['comuna']
+                barrio = fila['barrio']
+                if comuna not in resultado:
+                    resultado[comuna] = []
+                resultado[comuna].append(barrio)
+
+            if resultado:
+                for comuna, barrios in resultado.items():
+                    print(f"Comuna: {comuna}")
+                    for barrio in barrios:
+                        print(f"  - {barrio}")
+                return True
+            else:
+                print("No se encontraron barrios para las comunas solicitadas.")
+                return False
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
+            return False
 
     @classmethod
-    def obtener_cantidad_obras_finalizadas_monto_total_comuna1():
+    def obtener_cantidad_obras_finalizadas_monto_total_comuna1(cls) -> bool:
         try:
             query = (
-            Relacion
-            .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.Sum(Empresa.monto_contrato))
-            .where(Etapa.etapa == 'finalizada')   
-            .join(Obra, on=(Relacion.id_obras == Obra.id))
-            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
-            .join(Empresa, on=(Relacion.id_empresas == Empresa.id)))
+                Relacion
+                .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.SUM(Empresa.monto_contrato).alias('monto_total'))
+                .where(Etapa.etapa == 'finalizada')   
+                .join(Obra, on=(Relacion.id_obras == Obra.id))
+                .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+                .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+            )
+
+            result = query.dicts().first()
+            
+            if result:
+                cantidad_obras = result['cantidad_obras']
+                monto_total = result['monto_total'] or 0.0
+                print(f'Cantidad de obras finalizadas: {cantidad_obras}')
+                print(f'Monto total de contratos: {monto_total}')
+                return True
+            else:
+                print('No se encontraron obras finalizadas.')
+                return False
+        
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
+            return False
+
     
     @classmethod
     def obtener_cantidad_obras_finalizadas_menos_24_meses():
