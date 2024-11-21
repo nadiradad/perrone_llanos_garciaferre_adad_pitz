@@ -28,13 +28,11 @@ class Obra(BaseModel):
         return self.nombre
     class Meta:
         db_table = 'Obras'
-    def nuevo_proyecto(self, nombre, descripcion, expediente_numero, fecha_inicio, plazo_meses):
+    def nuevo_proyecto(self):
+       # OJO!!!! debe cambiar la etapa de la obra a Proyecto
        try:
-           self.nombre = nombre
-           self.descripcion = descripcion
-           self.expediente_numero = expediente_numero
-           self.fecha_inicio = fecha_inicio
-           self.plazo_meses = plazo_meses
+           # etapa_encontrada = (Etapa.select(Etapa.id).where(Etapa.etapa == 'Proyecto').scalar())
+           # porcentaje_avance = 0
            self.save()  
            print(f"Proyecto '{self.nombre}' registrado como nuevo proyecto.")
        except Exception as e:
