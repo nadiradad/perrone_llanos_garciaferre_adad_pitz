@@ -1,4 +1,4 @@
-#Este código iría en modelo_orm.copy()
+#Este código iría en modelo_orm.py
 def incrementar_mano_obra(self):
     incrementar = input("¿Desea incrementar la cantidad de mano de obra? (s/n): ").strip().lower()
     if incrementar == "s":
