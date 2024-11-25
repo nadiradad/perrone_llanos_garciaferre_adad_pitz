@@ -230,6 +230,13 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_cantidad_obras_por_etapa(cls) -> bool:
         try:
+            # query = (
+            #     Relacion
+            #     .select(fn.COUNT(Relacion.id).alias('cantidad_obras'), Etapa.etapa)
+            #     .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            #     .group_by(Etapa.etapa)
+            # )
+
             query = (
                 Obra
                 .select(Etapa.etapa, fn.COUNT(Obra.id).alias('cantidad_obras'))
@@ -247,6 +254,18 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_cantidad_obras_monto_por_obra(cls) -> bool:
         try:
+            # query = (
+            #     Relacion
+            #     .select(
+            #         fn.COUNT(Obra.id).alias('cantidad_obras'),
+            #         Obra.name.alias('nombre_obra'),
+            #         Empresa.monto_contrato.alias('monto_contrato')
+            #     )
+            #     .join(Obra, on=(Relacion.id_obras == Obra.id))
+            #     .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+            #     .group_by(Obra.name, Empresa.monto_contrato)
+            # )
+
             query = (
                 Obra
                 .select(TipoObra.tipo, 
@@ -263,7 +282,7 @@ class ObrasConstruccion(GestionarObra):
             return False
         
     @classmethod
-    def obtener_barrios_por_comunas_especificas(cls) -> bool:
+    def obtener_barrios_por_comuna(cls) -> bool:
         try:
             comunas_ids = [1, 2, 3]
 
@@ -297,6 +316,15 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_cantidad_obras_finalizadas_monto_total_comuna1(cls) -> bool:
         try:
+            # query = (
+            #     Relacion
+            #     .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.SUM(Empresa.monto_contrato).alias('monto_total'))
+            #     .where(Etapa.etapa == 'finalizada')   
+            #     .join(Obra, on=(Relacion.id_obras == Obra.id))
+            #     .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            #     .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+            # )
+
             query = (
                 Obra
                 .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.SUM(Obra.monto_contrato).alias('monto_total'))
@@ -374,7 +402,7 @@ class ObrasConstruccion(GestionarObra):
             )
             )
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
 
     @classmethod
     def obtener_monto_total_inversion():
@@ -385,7 +413,7 @@ class ObrasConstruccion(GestionarObra):
             )
             )
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
     
     @classmethod
     def obtener_indicadores(cls):
