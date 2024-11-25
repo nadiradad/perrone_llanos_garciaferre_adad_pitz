@@ -138,7 +138,7 @@ class ObrasConstruccion(GestionarObra):
             while True:
                 tipo = input("Ingrese el nombre del tipo de obra: ")
                 try: 
-                    tipo_encontrado= Area.get_or_none(TipoObra.tipo == tipo)
+                    tipo_encontrado= TipoObra.get_or_none(TipoObra.tipo == tipo)
                     if tipo_encontrado is None:
                         print(f"El tipo de obra ingresado no existe")
                     else:
@@ -150,30 +150,25 @@ class ObrasConstruccion(GestionarObra):
 
             while True:
                 contratacion_tipo = input("Ingrese el tipo de contratación: ")
-                contratacion= Obra.iniciar_contratacion(nro_contratacion, contratacion_tipo)
+                contratacion, id_contratacion= Obra.iniciar_contratacion(nro_contratacion, contratacion_tipo)
                 if contratacion:
-                    break     
-
-            nueva_contratacion= Contratacion(
-                nro_contratacion= nro_contratacion,
-                id_contratacion_tipo= contratacion_tipo_encontrado.id
-            ).save()
+                    break
 
             expediente_numero = input("Ingrese el número de expediente")
             while True:
                 licitacion_oferta_empresa = input("Ingrese la empresa adjudicada: ")
-                empresa= Obra.adjudicar_obra(licitacion_oferta_empresa, expediente_numero)
+                empresa, id_empresa= Obra.adjudicar_obra(licitacion_oferta_empresa, expediente_numero)
                 if empresa:
                     break
                 
-            etapa= Obra.nuevo_proyecto()
+            etapa, id_etapa= Obra.nuevo_proyecto()
             mano_obra = int(input("Ingrese cantidad de mano de obra: "))
             destacada = input("Ingrese si es destacada: ")
             fecha_inicio = input("Fecha de inicio (YYYY-MM-DD): ")
             fecha_fin_inicial = input("Fecha de fin (YYYY-MM-DD, opcional): ")
             while True:
                 financiamiento = input("Ingrese la fuente de financiamiento: ")
-                inicio_obra= Obra.iniciar_obra(mano_obra, destacada, fecha_inicio, fecha_fin_inicial, financiamiento)
+                inicio_obra, id_inicio_obra= Obra.iniciar_obra(mano_obra, destacada, fecha_inicio, fecha_fin_inicial, financiamiento)
                 if inicio_obra:
                     break
 
@@ -200,10 +195,10 @@ class ObrasConstruccion(GestionarObra):
                 porcentaje_avance = 0,
                 id_area_responsable=area_encontrada.id,
                 id_tipo = tipo_encontrado.id,
-                id_contratacion = nueva_contratacion.id,
-                id_empresas= licitacion_oferta_empresa_encontrada.id,
-                id_etapas = etapa,
-                id_financiamiento =financiamiento_encontrado.id,
+                id_contratacion = id_contratacion,
+                id_empresas= id_empresa,
+                id_etapas = id_etapa,
+                id_financiamiento =id_inicio_obra,
                 id_barrio= barrio_encontrado.id   
             ).save()
             print("Nueva obra registrada con éxito.")

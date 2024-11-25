@@ -119,7 +119,7 @@ class Obra(BaseModel):
                 print(f"Etapa del proyecto encontrada")
            self.id_etapas = etapa_encontrada.id
            print("nuevo proyecto iniciado correctamente")
-           return True
+           return True, etapa_encontrada.id
        except Exception as e:
            print(f"Error: {e}")
            return False
@@ -134,7 +134,7 @@ class Obra(BaseModel):
                 self.nro_contratacion=nro_contratacion             
                 self.id_contratacion_tipo=tipo_contratacion_encontrada.id
                 print(f"contratación iniciada correctamente")
-                return True
+                return True, tipo_contratacion_encontrada.id
         except Exception as e:
             print(f"No existe el tipo de contratacion deseado. Error: {e}")
             return None
@@ -146,10 +146,10 @@ class Obra(BaseModel):
                 print(f"La empresa solicitada no existe ")
                 return False
             else:     
-                self.id_empresas= empresa_encontrada.id 
+                self.id_empresas= empresa_encontrada.id
                 self.expediente_numero= expediente_numero
                 print("obra adjudicada correctamente")
-                return True
+                return True, empresa_encontrada.id
         except Exception as e:
             print(f"Error: {e}")
         
@@ -166,7 +166,7 @@ class Obra(BaseModel):
                 self.fecha_fin_inicial= fecha_fin_inicial
                 self.id_financiamiento= fuente_financiamiento_encontrada.id
                 print(f"Obra iniciada correctamente")
-                return True
+                return True, fuente_financiamiento_encontrada.id
         except Exception as e:
             print(f"Error: {e}")
 
