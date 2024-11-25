@@ -12,168 +12,6 @@ class BaseModel(Model):
     class Meta:
         database = sqlite_db
 
-class Obra(BaseModel):
-    id = AutoField(primary_key=True)
-    nombre = CharField(null=False)
-    descripcion = TextField()
-    expediente_numero = CharField()
-    mano_obra = IntegerField()
-    destacada = CharField(max_length=2)
-    fecha_inicio = DateField()
-    fecha_fin_inicial = DateField()
-    plazo_meses = IntegerField()
-    monto_contrato = FloatField()
-    porcentaje_avance = IntegerField()
-    def __str__(self):
-        return self.nombre
-    class Meta:
-        db_table = 'Obras'
-    def nuevo_proyecto(self):
-       # OJO!!!! debe cambiar la etapa de la obra a Proyecto
-       try:
-           # etapa_encontrada = (Etapa.select(Etapa.id).where(Etapa.etapa == 'Proyecto').scalar())
-           # porcentaje_avance = 0
-           self.save()  
-           print(f"Proyecto '{self.nombre}' registrado como nuevo proyecto.")
-       except Exception as e:
-           print(f"Error: {e}")
-
-    def iniciar_contratacion(nro_contratacion, contratacion_tipo):
-        try:
-            tipo_contratacion_encontrada = TipoContratacion.get_or_none(TipoContratacion.contratacion_tipo == contratacion_tipo)
-
-            if not tipo_contratacion_encontrada:
-                print("No existe el tipo de contratación deseado.")
-                return None
-            try:
-                nueva_contratacion = Contratacion(
-                    nro_contratacion=nro_contratacion,
-                    id_contratacion_tipo=tipo_contratacion_encontrada.id,
-                )
-                nueva_contratacion.save()
-                print("Nueva obra registrada con éxito.")
-                return nueva_contratacion
-            except Exception as e:
-                print(f"No se pudo crear la contratación. Error: {e}")
-                return None
-
-        except Exception as e:
-            print(f"No existe el tipo de contratacion deseado. Error: {e}")
-            return None
-        
-    def adjudicar_obra(self, licitacion_oferta_empresa, expediente_numero):
-        try:
-            empresa = Empresa.get_or_none(Empresa.licitacion_oferta_empresa == licitacion_oferta_empresa)
-            if empresa:
-                relacion = Relacion.get_or_none(Relacion.id_empresas == empresa.id, Relacion.id_obras == self.id)
-                if relacion:
-                    self.licitacion_oferta_empresa = licitacion_oferta_empresa
-                    self.expediente_numero = expediente_numero
-                    self.save()
-                    print(f"Obra {self.nombre} adjudicada exitosamente con la licitación {licitacion_oferta_empresa}.")
-                else:
-                    print(f"No existe una relación válida entre la obra {self.nombre} y la empresa.")
-            else:
-                print(f"La empresa con la licitación {licitacion_oferta_empresa} no existe.")
-        except Exception as e:
-            print(f"Error: {e}")
-        
-    def iniciar_obra(nombre, descripcion, mano_obra, destacada, fecha_inicio, fecha_fin_inicial, fuente_financiamiento ):
-        try:
-            fuente_financiamiento_encontrada = FuenteFinanciamiento.get_or_none(FuenteFinanciamiento.financiamiento == fuente_financiamiento)
-            if not fuente_financiamiento_encontrada:
-                print("No existe esa fuente de financiamiento.")
-                return None
-            try:
-                nueva_obra = Obra(
-                    nombre=nombre,
-                    descripcion=descripcion,
-                    destacada=destacada,
-                    mano_obra=mano_obra,
-                    fecha_inicio = fecha_inicio, 
-                    fecha_fin_inicial =fecha_fin_inicial, 
-                    financiamiento=fuente_financiamiento_encontrada.id,
-                )
-                nueva_obra.save()
-                print("Nueva obra registrada con éxito.")
-                return nueva_obra
-            except Exception as e:
-                print(f"No se pudo crear la contratación. Error: {e}")
-                return None
-        except Exception as e:
-            print(f"No existe el tipo de contratacion deseado. Error: {e}")
-            return None
-
-    def actualizar_porcentaje_avance():
-        pass
-
-    def incrementar_plazo(self, nuevo_plazo, nombre_obra):
-        try:
-            if nuevo_plazo <= 0:
-                print("El plazo debe ser un número positivo.")
-                return None
-        except ValueError:
-            print("Debe ingresar un número entero válido.")
-            return None
-
-        try:
-            obra = Obra.get_or_none(Obra.nombre == nombre_obra)
-            if not obra:
-                print("No existe la obra deseada.")
-                return None
-
-            obra.plazo_meses = nuevo_plazo
-            obra.save()
-            print(f"El plazo de la obra '{nombre_obra}' ha sido actualizado a {nuevo_plazo} meses.")
-        except Exception as e:
-            print(f"No se pudo modificar el plazo. Error: {e}")
-
-    def incrementar_mano_obra():
-        pass
-
-    def finalizar_obra(self, Id):
-        try:
-            query = (Etapa.update(etapa='Finalizada', porcentaje_avance=100) # REEVEER! OJO CON porcentaje_avance QUE PERTENECE A OBRA
-                     .where(Obra.id == Id)
-                     .join(Relacion, on=(Etapa.id == Relacion.id_etapas))
-                     .join(Obra, on=(Relacion.id_obras == Obra.id)))  
-
-            rows_updated = query.execute()
-            if rows_updated == 0:
-                mensaje = f"No se encontró una obra con el ID {Id}."
-                print(mensaje)
-                return False
-            else:
-                mensaje = f"La obra con ID {Id} ha sido finalizada correctamente."
-                print(mensaje)
-                return True  
-        except ValueError:
-            mensaje = "El ID ingresado no es válido. Por favor, ingrese un número entero."
-            print(mensaje)
-            return False  
-        except Exception as e:
-            mensaje = f"Se produjo un error al intentar finalizar la obra: {e}"
-            print(mensaje)
-            return False
-    
-    def rescindir_obra(self,Id):
-        try:
-            obra_encontrada = Obra.get_or_none(Obra.id == Id)    
-            if not obra_encontrada:
-                print("No existe una obra con ese Id")
-                return None
-            try:
-                obra_rescindida = Etapa.update(Etapa.etapa == 'Rescindida').where(Obra.id == Id).join(Relacion, on=(Etapa.id == Relacion.id_etapas)).join(Obra, on=(Relacion.id_obras == Obra.id))
-                obra_rescindida.save()
-                print("Nueva obra registrada con éxito.")
-                return obra_rescindida
-            except Exception as e:
-                print(f"No se pudo rescindir la obra. Error: {e}")
-                return None
-        except Exception as e:
-            print(f"Ha ocurrido un error al intentar buscar una obra con ese id. Error: {e}")
-            return None
-
 class Area(BaseModel):
     id = AutoField(primary_key=True)
     area_responsable = CharField()
@@ -249,17 +87,146 @@ class TipoObra(BaseModel):
     class Meta:
         db_table = 'TipoObras'
 
-class Relacion(BaseModel):
+class Obra(BaseModel):
     id = AutoField(primary_key=True)
-    id_obras = ForeignKeyField(Obra, backref='Relaciones')
-    id_barrio = ForeignKeyField(Barrio, backref='Relaciones')
-    id_area_responsable = ForeignKeyField(Area, backref='Relaciones')
-    id_tipo = ForeignKeyField(TipoObra, backref='Relaciones')
-    id_financiamiento = ForeignKeyField(FuenteFinanciamiento, backref='Relaciones')
-    id_contratacion = ForeignKeyField(Contratacion, backref='Relaciones')
-    id_etapas = ForeignKeyField(Etapa, backref='Relaciones')
-    id_empresas = ForeignKeyField(Empresa, backref='Relaciones')
+    nombre = CharField(null=False)
+    descripcion = TextField()
+    expediente_numero = CharField()
+    mano_obra = IntegerField()
+    destacada = CharField(max_length=2)
+    fecha_inicio = DateField()
+    fecha_fin_inicial = DateField()
+    plazo_meses = IntegerField()
+    monto_contrato = FloatField()
+    porcentaje_avance = IntegerField()
+    id_barrio = ForeignKeyField(Barrio, backref='Obras')
+    id_area_responsable = ForeignKeyField(Area, backref='Obras')
+    id_tipo = ForeignKeyField(TipoObra, backref='Obras')
+    id_financiamiento = ForeignKeyField(FuenteFinanciamiento, backref='Obras')
+    id_contratacion = ForeignKeyField(Contratacion, backref='Obras')
+    id_etapas = ForeignKeyField(Etapa, backref='Obras')
+    id_empresas = ForeignKeyField(Empresa, backref='Obras')
     def __str__(self):
-        pass
+        return self.nombre
     class Meta:
-        db_table = 'Relaciones'
+        db_table = 'Obras'
+    def nuevo_proyecto(self)->bool:
+       try:
+           etapa_encontrada, created= Etapa.get_or_create(Etapa.etapa == 'Proyecto')
+           if created == True:
+               print(f"La etapa proyecto no existía y se ha creado en la bbdd")
+           else:
+                print(f"Etapa del proyecto encontrada")
+           self.id_etapas = etapa_encontrada.id
+           return True
+       except Exception as e:
+           print(f"Error: {e}")
+           return False
+
+    def iniciar_contratacion(nro_contratacion, contratacion_tipo):
+        try:
+            tipo_contratacion_encontrada = TipoContratacion.get_or_none(TipoContratacion.contratacion_tipo == contratacion_tipo)
+            if not tipo_contratacion_encontrada:
+                print("No existe el tipo de contratación deseado.")
+                return None
+            try:
+                nueva_contratacion = Contratacion(
+                    nro_contratacion=nro_contratacion,
+                    id_contratacion_tipo=tipo_contratacion_encontrada.id,
+                )
+                nueva_contratacion.save()
+                print("Nueva obra registrada con éxito.")
+                return nueva_contratacion.id
+            except Exception as e:
+                print(f"No se pudo crear la contratación. Error: {e}")
+                return None
+        except Exception as e:
+            print(f"No existe el tipo de contratacion deseado. Error: {e}")
+            return None
+        
+    def adjudicar_obra(self, licitacion_oferta_empresa, expediente_numero):
+        try:
+            empresa_encontrada = Empresa.get_or_none(Empresa.licitacion_oferta_empresa == licitacion_oferta_empresa)
+            if empresa_encontrada:
+                    print(f"La empresa se encontró correctamente ")
+            return empresa_encontrada.id, expediente_numero
+        except Exception as e:
+            print(f"Error: {e}")
+        
+    def iniciar_obra(mano_obra, destacada, fecha_inicio, fecha_fin_inicial, fuente_financiamiento ):
+        try:
+            fuente_financiamiento_encontrada = FuenteFinanciamiento.get_or_none(FuenteFinanciamiento.financiamiento == fuente_financiamiento)
+            if not fuente_financiamiento_encontrada:
+                print("No existe esa fuente de financiamiento.")
+                return None
+            return fuente_financiamiento_encontrada.id, destacada, fecha_inicio,fecha_fin_inicial
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
+
+    def actualizar_porcentaje_avance(self, porcentaje_avance):
+        if 0 <= porcentaje_avance <= 100:
+            self.porcentaje_avance = porcentaje_avance
+            print(f"Porcentaje de avance actualizado a {porcentaje_avance}%.")
+        else:
+            raise ValueError("El porcentaje debe estar entre 0 y 100.")
+        print("Porcentaje de avance correcto")
+        return porcentaje_avance
+
+
+    def incrementar_plazo(self, nuevo_plazo):
+        try:
+            if nuevo_plazo <= 0:
+                print("El plazo debe ser un número positivo.")
+                return None
+            else:
+                self.plazo_meses= nuevo_plazo
+        except ValueError:
+            print("Debe ingresar un número entero válido.")
+            return None
+
+    def incrementar_mano_obra():
+        pass
+
+    def finalizar_obra(self, Id):
+        try:
+            query = (Etapa.update(etapa='Finalizada', porcentaje_avance=100) 
+                     .where(Obra.id == Id)
+                     .join(Relacion, on=(Etapa.id == Relacion.id_etapas))
+                     .join(Obra, on=(Relacion.id_obras == Obra.id)))  
+
+            rows_updated = query.execute()
+            if rows_updated == 0:
+                mensaje = f"No se encontró una obra con el ID {Id}."
+                print(mensaje)
+                return False
+            else:
+                mensaje = f"La obra con ID {Id} ha sido finalizada correctamente."
+                print(mensaje)
+                return True  
+        except ValueError:
+            mensaje = "El ID ingresado no es válido. Por favor, ingrese un número entero."
+            print(mensaje)
+            return False  
+        except Exception as e:
+            mensaje = f"Se produjo un error al intentar finalizar la obra: {e}"
+            print(mensaje)
+            return False
+    
+    def rescindir_obra(self,Id):
+        try:
+            obra_encontrada = Obra.get_or_none(Obra.id == Id)    
+            if not obra_encontrada:
+                print("No existe una obra con ese Id")
+                return None
+            try:
+                obra_rescindida = Etapa.update(Etapa.etapa == 'Rescindida').where(Obra.id == Id).join(Relacion, on=(Etapa.id == Relacion.id_etapas)).join(Obra, on=(Relacion.id_obras == Obra.id))
+                obra_rescindida.save()
+                print("Nueva obra registrada con éxito.")
+                return obra_rescindida
+            except Exception as e:
+                print(f"No se pudo rescindir la obra. Error: {e}")
+                return None
+        except Exception as e:
+            print(f"Ha ocurrido un error al intentar buscar una obra con ese id. Error: {e}")
+            return None
