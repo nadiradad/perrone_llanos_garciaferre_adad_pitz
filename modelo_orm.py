@@ -1,11 +1,11 @@
 from peewee import *
 
-sqlite_db = SqliteDatabase('/obras_urbanas.db', pragmas={'journal_mode': 'wal'})
-
+sqlite_db = SqliteDatabase('./obras_urbanas.db')
 try:
     sqlite_db.connect()
+    print("Conexión exitosa con la base de datos.")
 except OperationalError as e:
-    print("Error al conectar con la BD.", e)
+    print("Error al conectar con la BD:", e)
     exit()
 
 class BaseModel(Model):
@@ -92,7 +92,7 @@ class Obra(BaseModel):
     nombre = CharField(null=False)
     descripcion = TextField()
     expediente_numero = CharField()
-    mano_obra = IntegerField()
+    mano_obra = IntegerField(null=True)
     destacada = CharField(max_length=2)
     fecha_inicio = DateField()
     fecha_fin_inicial = DateField()

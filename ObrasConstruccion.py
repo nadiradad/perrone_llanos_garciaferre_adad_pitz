@@ -2,27 +2,37 @@ from gestionar_obras import *
 
 class ObrasConstruccion(GestionarObra):
     @classmethod
-    def extraer_datos():
-        archivo_csv = "/observatorio-de-obras-urbanas.csv"
+    def extraer_datos(cls):
+        archivo_csv = "./observatorio-de-obras-urbanas.csv"
         try:
-            df = pd.read_csv(archivo_csv, sep=",")
+            df = pd.read_csv(archivo_csv, sep=";", encoding='latin1')
+            columnas_a_eliminar = [
+                'entorno', 'direccion', 'lat', 'lng', 'imagen_1', 'imagen_2', 
+                'imagen_3', 'imagen_4', 'licitacion_anio', 'cuit_contratista', 
+                'beneficiarios', 'compromiso', 'ba_elige', 'link_interno', 
+                'pliego_descarga', 'estudio_ambiental_descarga'
+            ]
+            df = df.drop(columns=columnas_a_eliminar, errors='ignore')
+            print(f"Extracción de datos correcta")
             return df
         except FileNotFoundError as e:
             print("Error al conectar con el dataset.", e)
             return False
 
     @classmethod
-    def conectar_db():
-        sqlite_db =SqliteDatabase('/obras_urbanas.db', pragmas={'journal_mode': 'wal'})
+    def conectar_db(cls):
+        sqlite_db = SqliteDatabase('./obras_urbanas.db')
         try:
             sqlite_db.connect()
+            print("Conexión exitosa con la base de datos.")
+            return sqlite_db
         except OperationalError as e:
             print("Error al conectar con la BD.", e)
             exit()
-        return sqlite_db
+            sqlite_db.connect()
 
     @classmethod
-    def mapear_orm(cls):
+    def mapear_orm(cls)->bool:
         sqlite_db = cls.conectar_db()
         try:
             sqlite_db.create_tables([
@@ -37,69 +47,52 @@ class ObrasConstruccion(GestionarObra):
                             ,TipoObra
                            ,Obra
                             ])  
+            print('Tablas creadas correctamente')
+            return True
         except Exception as e:
             print(f'Error: {e}')
             sqlite_db.close()
+            return False
+
     
     @classmethod
     def limpiar_datos(cls, df: pd.DataFrame) -> pd.DataFrame:
         df = df.dropna(how='all')  
         df = df.fillna({col: 'Desconocido' if df[col].dtype == 'object' else 0 
-            for col in df.columns})
+                        for col in df.columns})
+        
+        if 'monto_contrato' in df.columns:
+            df['monto_contrato'] = df['monto_contrato'].replace({'\$': '', '\.': '', ',': '.'}, regex=True)
+        print("Datos limpios")
         return df
 
     @classmethod
-    def cargar_datos(df)->bool:
+    def cargar_datos(cls, df) -> bool:
         for index, row in df.iterrows():
-            try: 
-                comuna = Comuna.get_or_create(
-                    comuna=row['comuna']
-                )
-                barrio = Barrio.get_or_create(
-                    barrio=row['barrio'],
-                    id_comuna=comuna.id
-                )
-
-                area = Area.get_or_create(
-                    area_responsable=row['area_responsable']
-                )
-
-                fuente_financiamiento = FuenteFinanciamiento.get_or_create(
-                    financiamiento=row['financiamiento']
-                )
-
-                tipo_obra = TipoObra.get_or_create(
-                    tipo=row['tipo']
-                )
-
-                etapa = Etapa.get_or_create(
-                    etapa=row['etapa'],
-                    porcentaje_avance=row['porcentaje_avance']
-                )
-
-                empresa = Empresa.get_or_create(
-                    licitacion_oferta_empresa=row['licitacion_oferta_empresa'],
-                    monto_contrato=row['monto_contrato']
-                )
-
-                tipo_contratacion = TipoContratacion.get_or_create(
-                    contratacion_tipo=row['contratacion_tipo']
-                )
-
+            try:
+                comuna = Comuna.get_or_create(comuna=row['comuna'])[0]
+                barrio, _ = Barrio.get_or_create(barrio=row['barrio'], id_comuna=comuna.id)
+                area = Area.get_or_create(area_responsable=row['area_responsable'])[0]
+                fuente_financiamiento = FuenteFinanciamiento.get_or_create(financiamiento=row['financiamiento'])[0]
+                tipo_obra = TipoObra.get_or_create(tipo=row['tipo'])[0]
+                etapa = Etapa.get_or_create(etapa=row['etapa'])[0]
+                empresa = Empresa.get_or_create(licitacion_oferta_empresa=row['licitacion_oferta_empresa'])[0]
+                tipo_contratacion = TipoContratacion.get_or_create(contratacion_tipo=row['contratacion_tipo'])[0]  
                 contratacion = Contratacion.get_or_create(
-                    nro_contratacion=row['nro_contratacion'],
-                    id_contratacion_tipo=tipo_contratacion
-                )
-
+                nro_contratacion=row['nro_contratacion'], 
+                id_contratacion_tipo=tipo_contratacion.id
+                )[0]
                 obra = Obra.create(
                     nombre=row['nombre'],
                     descripcion=row['descripcion'],
-                    expediente_numero=row['expediente_numero'],
+                    expediente_numero=row['expediente-numero'],
                     mano_obra=row['mano_obra'],
                     destacada=row['destacada'],
                     fecha_inicio=row['fecha_inicio'],
                     fecha_fin_inicial=row['fecha_fin_inicial'],
                     plazo_meses=row['plazo_meses'],
+                    monto_contrato=row['monto_contrato'],
+                    porcentaje_avance=row['porcentaje_avance'],
                     id_barrio=barrio.id,
                     id_area_responsable=area.id,
                     id_tipo=tipo_obra.id,
@@ -110,13 +103,14 @@ class ObrasConstruccion(GestionarObra):
                 )
                 obra.save()
                 print("Datos cargados exitosamente.")
-                return True
+                return True 
             except Exception as e:
                 print(f"Error: {e}")
-                return False
+                return False 
+
 
     @classmethod
-    def nueva_obra():
+    def nueva_obra(cls):
         try:
             nombre = input("Ingrese el nombre de la obra: ")
             descripcion = input("Ingrese la descripción de la obra: ")
@@ -237,9 +231,9 @@ class ObrasConstruccion(GestionarObra):
     def obtener_cantidad_obras_por_etapa(cls) -> bool:
         try:
             query = (
-                Relacion
-                .select(fn.COUNT(Relacion.id).alias('cantidad_obras'), Etapa.etapa)
-                .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+                Obra
+                .select(Etapa.etapa, fn.COUNT(Obra.id).alias('cantidad_obras'))
+                .join(Etapa, on=(Obra.id_etapas == Etapa.id))
                 .group_by(Etapa.etapa)
             )
             results = query.execute()
@@ -254,26 +248,20 @@ class ObrasConstruccion(GestionarObra):
     def obtener_cantidad_obras_monto_por_obra(cls) -> bool:
         try:
             query = (
-                Relacion
-                .select(
-                    fn.COUNT(Obra.id).alias('cantidad_obras'),
-                    Obra.name.alias('nombre_obra'),
-                    Empresa.monto_contrato.alias('monto_contrato')
-                )
-                .join(Obra, on=(Relacion.id_obras == Obra.id))
-                .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
-                .group_by(Obra.name, Empresa.monto_contrato)
+                Obra
+                .select(TipoObra.tipo, 
+                        fn.COUNT(Obra.id).alias('cantidad_obras'), 
+                        fn.SUM(Obra.monto_contrato).alias('monto_total'))
+                .join(TipoObra, on=(Obra.id_tipo == TipoObra.id))
+                .group_by(TipoObra.tipo)
             )
-            
             for row in query.dicts():
-                print(f"Cantidad de obras: {row['cantidad_obras']}, "
-                    f"Nombre de la obra: {row['nombre_obra']}, "
-                    f"Monto del contrato: {row['monto_contrato']}")
+                print(f"Tipo de obra: {row['tipo']}, Cantidad de Obras: {row['cantidad_obras']}, Monto total: {row['monto_total']}")
             return True
         except Exception as e:
             print(f'Error: {e}')
             return False
-
+        
     @classmethod
     def obtener_barrios_por_comunas_especificas(cls) -> bool:
         try:
@@ -310,14 +298,13 @@ class ObrasConstruccion(GestionarObra):
     def obtener_cantidad_obras_finalizadas_monto_total_comuna1(cls) -> bool:
         try:
             query = (
-                Relacion
-                .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.SUM(Empresa.monto_contrato).alias('monto_total'))
-                .where(Etapa.etapa == 'finalizada')   
-                .join(Obra, on=(Relacion.id_obras == Obra.id))
-                .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
-                .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+                Obra
+                .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.SUM(Obra.monto_contrato).alias('monto_total'))
+                .join(Etapa, on=(Obra.id_etapas == Etapa.id))
+                .join(Barrio, on=(Obra.id_barrio == Barrio.id))
+                .join(Comuna, on=(Barrio.id_comuna == Comuna.id))
+                .where((Etapa.etapa == 'finalizada') & (Comuna.comuna == 1))
             )
-
             result = query.dicts().first()
             
             if result:
@@ -329,42 +316,54 @@ class ObrasConstruccion(GestionarObra):
             else:
                 print('No se encontraron obras finalizadas.')
                 return False
-        
+            
         except Exception as e:
             print(f'Error: {e}')
             return False
 
     
     @classmethod
-    def obtener_cantidad_obras_finalizadas_menos_24_meses():
+    def obtener_cantidad_obras_finalizadas_menos_24_meses() -> bool:
         try:
-            query=(
-            Relaciones
-            .select(fn.COUNT(Obras.id).alias('cantidad_obras'))
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .where((Etapas.etapa == 'finalizada') & (Obras.plazo_meses < 24))
+            query = (
+                Obra
+                .select(fn.COUNT(Obra.id).alias('cantidad_obras'))
+                .join(Etapa, on=(Obra.id_etapas == Etapa.id))
+                .where((Etapa.etapa == 'finalizada') & (Obra.plazo_meses <= 24))
             )
-        except peewee.IntegrityError as e:
-            print(f'El error de peewee: {e}')
+            cantidad_obras = query.scalar()  
+            if cantidad_obras:
+                print(f"En un plazo de 24 meses o menos se han finalizado {cantidad_obras} obras")
+            else:
+                print("No se han encontrado obras finalizadas en un plazo menor o igual a 24 meses.")
+            return True
+        except Exception as e:
+            print(f"Error: {e}")
+            return False
 
     @classmethod
-    def obtener_porcentaje_obras_finalizadas(): 
+    def obtener_porcentaje_obras_finalizadas() -> bool:
         try:
-            query=(
-            Relacion
-            .select(
-            (fn.COUNT(Relacion.id) / fn.COUNT(
-            Relacion
-            .select()
-            .join(Obra, on=(Relacion.id_obras == Obra.id))
-            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
-            .where(Etapa.etapa == 'finalizada')
-            ) * 100).alias('porcentaje_finalizadas')
+            total_obras_query = Obra.select(fn.COUNT(Obra.id).alias('total_obras'))
+            total_obras = total_obras_query.scalar() or 0
+            finalizadas_query = (
+                Obra
+                .select(fn.COUNT(Obra.id).alias('obras_finalizadas'))
+                .join(Etapa, on=(Obra.id_etapas == Etapa.id))
+                .where(Etapa.etapa == 'finalizada')
             )
-            )
+            obras_finalizadas = finalizadas_query.scalar() or 0
+
+            if total_obras > 0:
+                porcentaje_finalizada = (obras_finalizadas * 100) / total_obras
+                print(f"Un {porcentaje_finalizada:.2f}% de las obras se han finalizado.")
+            else:
+                print("No hay obras registradas.")
+            return True
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f"Error: {e}")
+            return False
+
     
     @classmethod
     def obtener_cantidad_total_mano_obra():
@@ -381,22 +380,22 @@ class ObrasConstruccion(GestionarObra):
     def obtener_monto_total_inversion():
         try:
             query=(
-            Empresa
-            .select(fn.Sum(Empresa.monto_contrato)
+            Obra
+            .select(fn.Sum(Obra.monto_contrato)
             )
             )
         except Exception as e:
             print(f'El error de peewee: {e}')
     
     @classmethod
-    def obtener_indicadores():
-       GestionarObra.obtener_listado_areas_responsables()
-       GestionarObra.obtener_listado_tipos_obra()
-       GestionarObra.obtener_cantidad_obras_por_etapa()
-       GestionarObra.obtener_cantidad_obras_monto_por_obra()
-       GestionarObra.obtener_obtener_barrios_por_comuna()
-       GestionarObra.obtener_cantidad_obras_finalizadas_monto_total_comuna1()
-       GestionarObra.obtener_cantidad_obras_finalizadas_menos_24_meses()
-       GestionarObra.obtener_porcentaje_obras_finalizadas()
-       GestionarObra.obtener_cantidad_total_mano_obra()
-       GestionarObra.obtener_monto_total_inversion()
+    def obtener_indicadores(cls):
+       cls.obtener_listado_areas_responsables()
+       cls.obtener_listado_tipos_obra()
+       cls.obtener_cantidad_obras_por_etapa()
+       cls.obtener_cantidad_obras_monto_por_obra()
+       cls.obtener_barrios_por_comunas_especificas()
+       cls.obtener_cantidad_obras_finalizadas_monto_total_comuna1()
+       cls.obtener_cantidad_obras_finalizadas_menos_24_meses()
+       cls.obtener_porcentaje_obras_finalizadas()
+       cls.obtener_cantidad_total_mano_obra()
+       cls.obtener_monto_total_inversion()
