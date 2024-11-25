@@ -236,10 +236,17 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_cantidad_obras_por_etapa(cls) -> bool:
         try:
+            # query = (
+            #     Relacion
+            #     .select(fn.COUNT(Relacion.id).alias('cantidad_obras'), Etapa.etapa)
+            #     .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            #     .group_by(Etapa.etapa)
+            # )
+
             query = (
-                Relacion
-                .select(fn.COUNT(Relacion.id).alias('cantidad_obras'), Etapa.etapa)
-                .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+                Obra
+                .select(fn.COUNT(Obra.id).alias('cantidad_obras'), Etapa.etapa)
+                .join(Etapa, on=(Obra.id_etapas == Etapa.id))
                 .group_by(Etapa.etapa)
             )
             results = query.execute()
@@ -253,15 +260,26 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_cantidad_obras_monto_por_obra(cls) -> bool:
         try:
+            # query = (
+            #     Relacion
+            #     .select(
+            #         fn.COUNT(Obra.id).alias('cantidad_obras'),
+            #         Obra.name.alias('nombre_obra'),
+            #         Empresa.monto_contrato.alias('monto_contrato')
+            #     )
+            #     .join(Obra, on=(Relacion.id_obras == Obra.id))
+            #     .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+            #     .group_by(Obra.name, Empresa.monto_contrato)
+            # )
+
             query = (
-                Relacion
+                Obra
                 .select(
                     fn.COUNT(Obra.id).alias('cantidad_obras'),
                     Obra.name.alias('nombre_obra'),
                     Empresa.monto_contrato.alias('monto_contrato')
                 )
-                .join(Obra, on=(Relacion.id_obras == Obra.id))
-                .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+                .join(Empresa, on=(Obra.id_empresas == Empresa.id))
                 .group_by(Obra.name, Empresa.monto_contrato)
             )
             
@@ -275,7 +293,7 @@ class ObrasConstruccion(GestionarObra):
             return False
 
     @classmethod
-    def obtener_barrios_por_comunas_especificas(cls) -> bool:
+    def obtener_barrios_por_comuna(cls) -> bool:
         try:
             comunas_ids = [1, 2, 3]
 
@@ -309,13 +327,21 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_cantidad_obras_finalizadas_monto_total_comuna1(cls) -> bool:
         try:
+            # query = (
+            #     Relacion
+            #     .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.SUM(Empresa.monto_contrato).alias('monto_total'))
+            #     .where(Etapa.etapa == 'finalizada')   
+            #     .join(Obra, on=(Relacion.id_obras == Obra.id))
+            #     .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            #     .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+            # )
+
             query = (
-                Relacion
+                Obra
                 .select(fn.COUNT(Obra.id).alias('cantidad_obras'), fn.SUM(Empresa.monto_contrato).alias('monto_total'))
                 .where(Etapa.etapa == 'finalizada')   
-                .join(Obra, on=(Relacion.id_obras == Obra.id))
-                .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
-                .join(Empresa, on=(Relacion.id_empresas == Empresa.id))
+                .join(Etapa, on=(Obra.id_etapas == Etapa.id))
+                .join(Empresa, on=(Obra.id_empresas == Empresa.id))
             )
 
             result = query.dicts().first()
@@ -338,33 +364,45 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_cantidad_obras_finalizadas_menos_24_meses():
         try:
+            # query=(
+            # Relaciones
+            # .select(fn.COUNT(Obras.id).alias('cantidad_obras'))
+            # .join(Obras, on=(Relaciones.id_obras == Obras.id))
+            # .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
+            # .where((Etapas.etapa == 'finalizada') & (Obras.plazo_meses < 24))
+            # )
+
             query=(
-            Relaciones
-            .select(fn.COUNT(Obras.id).alias('cantidad_obras'))
-            .join(Obras, on=(Relaciones.id_obras == Obras.id))
-            .join(Etapas, on=(Relaciones.id_etapas == Etapas.id))
-            .where((Etapas.etapa == 'finalizada') & (Obras.plazo_meses < 24))
+            Obra
+            .select(fn.COUNT(Obra.id).alias('cantidad_obras'))
+            .join(Etapa, on=(Obra.id_etapas == Etapa.id))
+            .where((Etapa.etapa == 'Finalizada') & (Obra.plazo_meses < 24))
             )
-        except peewee.IntegrityError as e:
-            print(f'El error de peewee: {e}')
+        except Exception as e:
+            print(f'Error: {e}')
 
     @classmethod
     def obtener_porcentaje_obras_finalizadas(): 
         try:
-            query=(
-            Relacion
-            .select(
-            (fn.COUNT(Relacion.id) / fn.COUNT(
-            Relacion
-            .select()
-            .join(Obra, on=(Relacion.id_obras == Obra.id))
-            .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
-            .where(Etapa.etapa == 'finalizada')
-            ) * 100).alias('porcentaje_finalizadas')
-            )
-            )
+            # query=(
+            # Relacion
+            # .select(
+            # (fn.COUNT(Relacion.id) / fn.COUNT(
+            # Relacion
+            # .select()
+            # .join(Obra, on=(Relacion.id_obras == Obra.id))
+            # .join(Etapa, on=(Relacion.id_etapas == Etapa.id))
+            # .where(Etapa.etapa == 'finalizada')
+            # ) * 100).alias('porcentaje_finalizadas')
+            # )
+            # )
+
+            query = Obra.select(fn.COUNT(Obra.id) / fn.COUNT(
+                Obra.select().join(Etapa, on=(Obra.id_etapas == Etapa.id))
+                .where(Etapa.etapa == 'Finalizada')) * 100).alias('porcentaje_finalizadas')
+            
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
     
     @classmethod
     def obtener_cantidad_total_mano_obra():
@@ -375,7 +413,7 @@ class ObrasConstruccion(GestionarObra):
             )
             )
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
 
     @classmethod
     def obtener_monto_total_inversion():
@@ -386,7 +424,7 @@ class ObrasConstruccion(GestionarObra):
             )
             )
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
     
     @classmethod
     def obtener_indicadores():
@@ -394,7 +432,7 @@ class ObrasConstruccion(GestionarObra):
        GestionarObra.obtener_listado_tipos_obra()
        GestionarObra.obtener_cantidad_obras_por_etapa()
        GestionarObra.obtener_cantidad_obras_monto_por_obra()
-       GestionarObra.obtener_obtener_barrios_por_comuna()
+       GestionarObra.obtener_barrios_por_comuna()
        GestionarObra.obtener_cantidad_obras_finalizadas_monto_total_comuna1()
        GestionarObra.obtener_cantidad_obras_finalizadas_menos_24_meses()
        GestionarObra.obtener_porcentaje_obras_finalizadas()
