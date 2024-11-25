@@ -118,60 +118,66 @@ class Obra(BaseModel):
            else:
                 print(f"Etapa del proyecto encontrada")
            self.id_etapas = etapa_encontrada.id
+           print("nuevo proyecto iniciado correctamente")
            return True
        except Exception as e:
            print(f"Error: {e}")
            return False
 
-    def iniciar_contratacion(nro_contratacion, contratacion_tipo):
+    def iniciar_contratacion(self, nro_contratacion, contratacion_tipo)->bool:
         try:
-            tipo_contratacion_encontrada = TipoContratacion.get_or_none(TipoContratacion.contratacion_tipo == contratacion_tipo)
+            tipo_contratacion_encontrada = TipoContratacion.get(TipoContratacion.contratacion_tipo == contratacion_tipo)
             if not tipo_contratacion_encontrada:
-                print("No existe el tipo de contratación deseado.")
-                return None
-            try:
-                nueva_contratacion = Contratacion(
-                    nro_contratacion=nro_contratacion,
-                    id_contratacion_tipo=tipo_contratacion_encontrada.id,
-                )
-                nueva_contratacion.save()
-                print("Nueva obra registrada con éxito.")
-                return nueva_contratacion.id
-            except Exception as e:
-                print(f"No se pudo crear la contratación. Error: {e}")
-                return None
+                print(f"No se ha encontrado el tipo de contratación solicitada")
+                return False
+            else:
+                self.nro_contratacion=nro_contratacion             
+                self.id_contratacion_tipo=tipo_contratacion_encontrada.id
+                print(f"contratación iniciada correctamente")
+                return True
         except Exception as e:
             print(f"No existe el tipo de contratacion deseado. Error: {e}")
             return None
         
-    def adjudicar_obra(self, licitacion_oferta_empresa, expediente_numero):
+    def adjudicar_obra(self, licitacion_oferta_empresa, expediente_numero)->bool:
         try:
-            empresa_encontrada = Empresa.get_or_none(Empresa.licitacion_oferta_empresa == licitacion_oferta_empresa)
-            if empresa_encontrada:
-                    print(f"La empresa se encontró correctamente ")
-            return empresa_encontrada.id, expediente_numero
+            empresa_encontrada = Empresa.get(Empresa.licitacion_oferta_empresa == licitacion_oferta_empresa)
+            if not empresa_encontrada:
+                print(f"La empresa solicitada no existe ")
+                return False
+            else:     
+                self.id_empresas= empresa_encontrada.id 
+                self.expediente_numero= expediente_numero
+                print("obra adjudicada correctamente")
+                return True
         except Exception as e:
             print(f"Error: {e}")
         
-    def iniciar_obra(mano_obra, destacada, fecha_inicio, fecha_fin_inicial, fuente_financiamiento ):
+    def iniciar_obra(self, mano_obra, destacada, fecha_inicio, fecha_fin_inicial, fuente_financiamiento )->bool:
         try:
-            fuente_financiamiento_encontrada = FuenteFinanciamiento.get_or_none(FuenteFinanciamiento.financiamiento == fuente_financiamiento)
+            fuente_financiamiento_encontrada = FuenteFinanciamiento.get(FuenteFinanciamiento.financiamiento == fuente_financiamiento)
             if not fuente_financiamiento_encontrada:
                 print("No existe esa fuente de financiamiento.")
-                return None
-            return fuente_financiamiento_encontrada.id, destacada, fecha_inicio,fecha_fin_inicial
+                return False
+            else:
+                self.mano_obra= mano_obra
+                self.destacada=destacada
+                self.fecha_inicio= fecha_inicio
+                self.fecha_fin_inicial= fecha_fin_inicial
+                self.id_financiamiento= fuente_financiamiento_encontrada.id
+                print(f"Obra iniciada correctamente")
+                return True
         except Exception as e:
             print(f"Error: {e}")
-            return None
 
-    def actualizar_porcentaje_avance(self, porcentaje_avance):
+    def actualizar_porcentaje_avance(self, porcentaje_avance)->bool:
         if 0 <= porcentaje_avance <= 100:
             self.porcentaje_avance = porcentaje_avance
             print(f"Porcentaje de avance actualizado a {porcentaje_avance}%.")
+            return True
         else:
             raise ValueError("El porcentaje debe estar entre 0 y 100.")
-        print("Porcentaje de avance correcto")
-        return porcentaje_avance
+            return False
 
 
     def incrementar_plazo(self, nuevo_plazo):
