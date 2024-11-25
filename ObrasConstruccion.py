@@ -25,18 +25,20 @@ class ObrasConstruccion(GestionarObra):
     def mapear_orm(cls):
         sqlite_db = cls.conectar_db()
         try:
-            sqlite_db.create_tables([Obra
-                            ,Area
+            sqlite_db.create_tables([
+                            Area
                             ,FuenteFinanciamiento
                             ,Comuna
+                            ,Barrio
                             ,Etapa
                             ,Empresa
                             ,TipoContratacion
                             ,Contratacion
                             ,TipoObra
-                            ,Relacion])  
+                           ,Obra
+                            ])  
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
             sqlite_db.close()
     
     @classmethod
@@ -47,10 +49,9 @@ class ObrasConstruccion(GestionarObra):
         return df
 
     @classmethod
-    def cargar_datos(df):
+    def cargar_datos(df)->bool:
         for index, row in df.iterrows():
             try: 
-            
                 comuna = Comuna.get_or_create(
                     comuna=row['comuna']
                 )
@@ -106,37 +107,23 @@ class ObrasConstruccion(GestionarObra):
                     id_contratacion=contratacion.id,
                     id_etapas=etapa.id,
                     id_empresas=empresa.id
-                ).save()
-
+                )
+                obra.save()
+                print("Datos cargados exitosamente.")
+                return True
             except Exception as e:
                 print(f"Error: {e}")
-        print("Datos cargados exitosamente.")
+                return False
 
     @classmethod
     def nueva_obra():
         try:
             nombre = input("Ingrese el nombre de la obra: ")
             descripcion = input("Ingrese la descripción de la obra: ")
-            expediente_numero = input("Ingrese el número de expediente")
-            mano_obra = int(input("Ingrese cantidad de mano de obra: "))
-            destacada = input("Ingrese si es destacada: ")
-            fecha_inicio = input("Fecha de inicio (YYYY-MM-DD): ")
-            fecha_fin_inicial = input("Fecha de fin (YYYY-MM-DD, opcional): ")
+          
             plazo_meses = int(input("Ingrese la cantidad de meses que durarà la obra: "))
             monto_contrato= float(input("Ingrese el monto del contrato:"))
             
-            nueva_obra = Obra(
-                nombre=nombre,
-                descripcion=descripcion,
-                expediente_numero=expediente_numero,
-                fecha_inicio=fecha_inicio,
-                fecha_fin_inicial=fecha_fin_inicial if fecha_fin_inicial else None,
-                mano_obra=mano_obra,
-                destacada=destacada,
-                plazo_meses=plazo_meses,
-                monto_contrato =monto_contrato, 
-                porcentaje_avance = 0   
-            ).save()
             while True:
                 area_responsable = input("Ingrese el nombre del area responsable: ")
                 try: 
@@ -160,47 +147,35 @@ class ObrasConstruccion(GestionarObra):
                     print(f"Error: {e}")            
 
             nro_contratacion = input("Ingrese el número de contratación: ")
+
             while True:
                 contratacion_tipo = input("Ingrese el tipo de contratación: ")
-                try: 
-                    contratacion_tipo_encontrado= TipoContratacion.get_or_none(TipoContratacion.contratacion_tipo == contratacion_tipo)
-                    if contratacion_tipo_encontrado is None:
-                        print(f"El tipo de contratación ingresado no existe")
-                    else:
-                        break
-                except Exception as e:
-                    print(f"Error: {e}")         
+                contratacion= Obra.iniciar_contratacion(nro_contratacion, contratacion_tipo)
+                if contratacion:
+                    break     
 
             nueva_contratacion= Contratacion(
                 nro_contratacion= nro_contratacion,
                 id_contratacion_tipo= contratacion_tipo_encontrado.id
             ).save()
 
+            expediente_numero = input("Ingrese el número de expediente")
             while True:
                 licitacion_oferta_empresa = input("Ingrese la empresa adjudicada: ")
-                try: 
-                    licitacion_oferta_empresa_encontrada= Empresa.get_or_none(Empresa.licitacion_oferta_empresa == licitacion_oferta_empresa)
-                    if licitacion_oferta_empresa_encontrada is None:
-                        print(f"La empresa solicitada no existe")
-                    else:
-                        break
-                except Exception as e:
-                    print(f"Error: {e}") 
-            try:
-                etapa_encontrada = (Etapa.select(Etapa.id).where(Etapa.etapa == 'Proyecto').scalar())   
-            except Exception as e:
-                print(f"Error: {e}")
-
+                empresa= Obra.adjudicar_obra(licitacion_oferta_empresa, expediente_numero)
+                if empresa:
+                    break
+                
+            etapa= Obra.nuevo_proyecto()
+            mano_obra = int(input("Ingrese cantidad de mano de obra: "))
+            destacada = input("Ingrese si es destacada: ")
+            fecha_inicio = input("Fecha de inicio (YYYY-MM-DD): ")
+            fecha_fin_inicial = input("Fecha de fin (YYYY-MM-DD, opcional): ")
             while True:
-                financiamiento = input("Ingrese la empresa adjudicada: ")
-                try: 
-                    financiamiento_encontrado= FuenteFinanciamiento.get_or_none(FuenteFinanciamiento.financiamiento == financiamiento)
-                    if financiamiento_encontrado is None:
-                        print(f"La fuente de financiamiento no existe")
-                    else:
-                        break
-                except Exception as e:
-                    print(f"Error: {e}")     
+                financiamiento = input("Ingrese la fuente de financiamiento: ")
+                inicio_obra= Obra.iniciar_obra(mano_obra, destacada, fecha_inicio, fecha_fin_inicial, financiamiento)
+                if inicio_obra:
+                    break
 
             while True:
                 barrio = input("Ingrese el barrio: ")
@@ -212,15 +187,24 @@ class ObrasConstruccion(GestionarObra):
                         break
                 except Exception as e:
                     print(f"Error: {e}")               
-            nueva_relacion=Relacion(
-                id_obras = nueva_obra.id,
+            nueva_obra = Obra(
+                nombre=nombre,
+                descripcion=descripcion,
+                expediente_numero=expediente_numero,
+                fecha_inicio=fecha_inicio,
+                fecha_fin_inicial=fecha_fin_inicial if fecha_fin_inicial else None,
+                mano_obra=mano_obra,
+                destacada=destacada,
+                plazo_meses=plazo_meses,
+                monto_contrato =monto_contrato, 
+                porcentaje_avance = 0,
                 id_area_responsable=area_encontrada.id,
                 id_tipo = tipo_encontrado.id,
                 id_contratacion = nueva_contratacion.id,
                 id_empresas= licitacion_oferta_empresa_encontrada.id,
-                id_etapas = etapa_encontrada,
+                id_etapas = etapa,
                 id_financiamiento =financiamiento_encontrado.id,
-                id_barrio= barrio_encontrado.id
+                id_barrio= barrio_encontrado.id   
             ).save()
             print("Nueva obra registrada con éxito.")
             return nueva_obra
