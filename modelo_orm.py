@@ -180,76 +180,58 @@ class Obra(BaseModel):
             return False
 
 
-    def incrementar_plazo(self, nuevo_plazo):
-        try:
-            if nuevo_plazo <= 0:
-                print("El plazo debe ser un número positivo.")
-                return None
-            else:
-                self.plazo_meses= nuevo_plazo
-        except ValueError:
-            print("Debe ingresar un número entero válido.")
-            return None
-
-    def incrementar_mano_obra(self):
-        try:
-            incrementar = input("¿Desea incrementar la cantidad de mano de obra? (s/n): ").lower() # s = si ; n = no
-            if incrementar == "s": # al ser respuesta "s" sigue su ejecución
-                try:
-                    cantidad = int(input("Ingrese la cantidad adicional de mano de obra: "))
-                    if cantidad > 0:
-                        self.mano_obra += cantidad # incrementa la mano de obra
-                        print(f"Se incrementó la mano de obra en {cantidad}. Total actual: {self.mano_obra}.")
-                    return self.mano_obra
-                except ValueError as e:
-                    print(f"Error: {e}. Asegúrese de ingresar un número válido y positivo.")
-            elif incrementar == "n":
-                print("No se realizaron cambios en la cantidad de mano de obra.")
-            else:
-                print("Opción no válida. Por favor, responda con 's' o 'n'.")
-        except Exception as e:
-            print(f"Ha ocurrido un error inesperado: {e}")
-
-
-    def finalizar_obra(self, Id):
-        try:
-            query = (Etapa.update(etapa='Finalizada', porcentaje_avance=100) 
-                     .where(Obra.id == Id)
-                     .join(Relacion, on=(Etapa.id == Relacion.id_etapas))
-                     .join(Obra, on=(Relacion.id_obras == Obra.id)))  
-
-            rows_updated = query.execute()
-            if rows_updated == 0:
-                mensaje = f"No se encontró una obra con el ID {Id}."
-                print(mensaje)
+    def incrementar_plazo(self, plazo):
+        if plazo <= 0:
+            print("El plazo debe ser un número positivo.")
+            return False
+        else:
+            try:
+                self.plazo_meses+= plazo
+                print(f"Se incrementó el plazo de la obra en {plazo}. Total actual: {self.plazo_meses}.")
+                return True
+            except Exception as e:
+                print(f"No se pudo incrementar el plazo. Error: {e}")
                 return False
+
+    def incrementar_mano_obra(self, mano_obra) -> bool:
+        if mano_obra <= 0:
+            print("La mano obra debe ser un número positivo.")
+            return False
+        else:
+            try:
+                self.mano_obra += mano_obra # incrementa la mano de obra
+                print(f"Se incrementó la mano de obra en {mano_obra}. Total actual: {self.mano_obra}.")
+                return True
+            except Exception as e:
+                print(f"No se pudo incrementar la mano obra. Error: {e}")
+                return False
+
+
+    def finalizar_obra(self):
+        try:
+            etapa_finalizada, created = Etapa.get_or_create(Etapa.etapa == 'Finalizada')
+            if created:
+                print('Se creo la etapa Finalizada en la base de datos...')
             else:
-                mensaje = f"La obra con ID {Id} ha sido finalizada correctamente."
-                print(mensaje)
-                return True  
-        except ValueError:
-            mensaje = "El ID ingresado no es válido. Por favor, ingrese un número entero."
-            print(mensaje)
-            return False  
+                print('Se encontro la etapa Finalizada en la base de datos...')
+            self.id_etapas = etapa_finalizada.id
+            self.porcentaje_avance = 100
+            print('Etapa Finalizada con exito.')
+            return True
         except Exception as e:
-            mensaje = f"Se produjo un error al intentar finalizar la obra: {e}"
-            print(mensaje)
+            print(f"No se pudo finalizar la obra. Error: {e}")
             return False
     
-    def rescindir_obra(self,Id):
+    def rescindir_obra(self) -> bool:
         try:
-            obra_encontrada = Obra.get_or_none(Obra.id == Id)    
-            if not obra_encontrada:
-                print("No existe una obra con ese Id")
-                return None
-            try:
-                obra_rescindida = Etapa.update(Etapa.etapa == 'Rescindida').where(Obra.id == Id).join(Relacion, on=(Etapa.id == Relacion.id_etapas)).join(Obra, on=(Relacion.id_obras == Obra.id))
-                obra_rescindida.save()
-                print("Nueva obra registrada con éxito.")
-                return obra_rescindida
-            except Exception as e:
-                print(f"No se pudo rescindir la obra. Error: {e}")
-                return None
+            etapa_rescindida, created = Etapa.get_or_create(Etapa.etapa == 'Rescindida')
+            if created:
+                print('Se creo la etapa Rescindida en la base de datos...')
+            else:
+                print('Se encontro la etapa Rescindida en la base de datos...')
+            self.id_etapas = etapa_rescindida.id
+            print('Etapa Rescindida con exito.')
+            return True
         except Exception as e:
-            print(f"Ha ocurrido un error al intentar buscar una obra con ese id. Error: {e}")
-            return None
+            print(f"No se pudo rescindir la obra. Error: {e}")
+            return False
