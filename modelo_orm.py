@@ -30,7 +30,7 @@ class FuenteFinanciamiento(BaseModel):
 
 class Comuna(BaseModel):
     id = AutoField(primary_key=True)
-    comuna = IntegerField(null=False)
+    comuna = IntegerField(null=True)
     def __str__(self):
         return self.comuna
     class Meta:
@@ -94,11 +94,11 @@ class Obra(BaseModel):
     expediente_numero = CharField()
     mano_obra = IntegerField(null=True)
     destacada = CharField(max_length=2)
-    fecha_inicio = DateField()
-    fecha_fin_inicial = DateField()
-    plazo_meses = IntegerField()
-    monto_contrato = FloatField()
-    porcentaje_avance = IntegerField()
+    fecha_inicio = DateField(null=True)
+    fecha_fin_inicial = DateField(null=True)
+    plazo_meses = IntegerField(null=True)
+    monto_contrato = FloatField(null=True)
+    porcentaje_avance = IntegerField(null=True)
     id_barrio = ForeignKeyField(Barrio, backref='Obras')
     id_area_responsable = ForeignKeyField(Area, backref='Obras')
     id_tipo = ForeignKeyField(TipoObra, backref='Obras')
