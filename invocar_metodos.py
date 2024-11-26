@@ -19,15 +19,17 @@ from ObrasConstruccion import *
 # obra2.rescindir_obra()
 
 def main():
+    print('\n*-------------------------------------------------------------------------------------------------*')
     print('Bienvenido a nuestro Trabajo Practico Final Integrador')
     print('Hecho por: Milagros Llanos, Nadir Adad, Brian Pitz, Pablo Garcia Ferre y Gaston Perrone.')
-    print('Al ejecutar este archivo lo primero que vamos hacer es configurar la base de datos y cargar los datos del data set...')
+    print('*-------------------------------------------------------------------------------------------------*\n')
+    print('Al ejecutar este archivo lo primero que vamos hacer es configurar la base de datos y cargar los datos del data set...\n')
     ObrasConstruccion.conectar_db()
     ObrasConstruccion.mapear_orm()
     df= ObrasConstruccion.extraer_datos()
     ObrasConstruccion.limpiar_datos(df)
     ObrasConstruccion.cargar_datos(df)
-    print('Procesos iniciales finalizados...')
+    print('Procesos iniciales finalizados...\n')
     while True:
         print('Opciones: ')
         print('1- Obtener indicadores')
@@ -36,7 +38,7 @@ def main():
         print('4- Incrementar Mano Obra')
         print('5- Finalizar Obra')
         print('6- Rescindir Obra')
-        print('7- Finalizar')
+        print('7- Salir\n')
         opcion = int(input('ingrese el numero segun la opcion: '))
         match opcion:
             case 1:
@@ -54,6 +56,8 @@ def main():
             case 6:
                 obra1.rescindir_obra()
             case 7:
+                print('\nSaliendo del TP...')
+                print('Gracias vuelva prontos!\n')
                 break
 
 if __name__ == "__main__":

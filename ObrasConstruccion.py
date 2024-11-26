@@ -397,13 +397,41 @@ class ObrasConstruccion(GestionarObra):
     
     @classmethod
     def obtener_indicadores(cls):
-       cls.obtener_listado_areas_responsables()
-       cls.obtener_listado_tipos_obra()
-       cls.obtener_cantidad_obras_por_etapa()
-       cls.obtener_cantidad_obras_monto_por_obra()
-       cls.obtener_barrios_por_comunas_especificas()
-       cls.obtener_cantidad_obras_finalizadas_monto_total_comuna1()
-       cls.obtener_cantidad_obras_finalizadas_menos_24_meses()
-       cls.obtener_porcentaje_obras_finalizadas()
-       cls.obtener_cantidad_total_mano_obra()
-       cls.obtener_monto_total_inversion()
+        while True:
+            print('Usted selecciono Obtener indicadores')
+            print('Estas son las opciones: ')
+            print('1- Obtener listado areas responsables')
+            print('2- Obtener listado_tipos_obra')
+            print('3- Obtener cantidad_obras_por_etapa')
+            print('4- Obtener cantidad_obras_monto_por_obra')
+            print('5- Obtener barrios_por_comunas')
+            print('6- Obtener cantidad_obras_finalizadas_monto_total_comuna')
+            print('7- Obtener cantidad_obras_finalizadas_menos_24_meses')
+            print('8- Obtener porcentaje_obras_finalizadas')
+            print('9- Obtener cantidad_total_mano_obra')
+            print('10- Obtener monto_total_inversion')
+            print('0- Salir de indicadores')
+            opcion = int(input('Ingrese el nro segun la opcion deseada'))
+            match opcion:
+                case 1:
+                    cls.obtener_listado_areas_responsables()
+                case 2:
+                    cls.obtener_listado_tipos_obra()
+                case 3:
+                    cls.obtener_cantidad_obras_por_etapa()
+                case 4:
+                    cls.obtener_cantidad_obras_monto_por_obra()
+                case 5:
+                    cls.obtener_barrios_por_comunas_especificas()
+                case 6:
+                    cls.obtener_cantidad_obras_finalizadas_monto_total_comuna1()
+                case 7:
+                    cls.obtener_cantidad_obras_finalizadas_menos_24_meses()
+                case 8:
+                    cls.obtener_porcentaje_obras_finalizadas()
+                case 9:
+                    cls.obtener_cantidad_total_mano_obra()
+                case 10:    
+                    cls.obtener_monto_total_inversion()
+                case 0:
+                    break
