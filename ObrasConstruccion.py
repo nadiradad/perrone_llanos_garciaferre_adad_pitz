@@ -207,8 +207,9 @@ class ObrasConstruccion(GestionarObra):
             query = (Area
             .select(Area.area_responsable))
             results = query.execute() 
+            print(f"Este es el resultado de listar de todas las áreas responsables: ") 
             for row in results: 
-                print(row.area_responsable) 
+                print(f"{row.area_responsable}") 
             return True 
         except Exception as e:
             print(f'Error: {e}')
@@ -220,6 +221,7 @@ class ObrasConstruccion(GestionarObra):
             query = (TipoObra
                      .select(TipoObra.tipo))
             results = query.execute() 
+            print(f"Este es el resultado de listar de todos los tipos de obra: ") 
             for row in results: 
                 print(row.tipo) 
             return True 
@@ -234,11 +236,12 @@ class ObrasConstruccion(GestionarObra):
                 Obra
                 .select(Etapa.etapa, fn.COUNT(Obra.id).alias('cantidad_obras'))
                 .join(Etapa, on=(Obra.id_etapas == Etapa.id))
-                .group_by(Etapa.etapa)
+                .group_by(Obra.id_etapas)
             )
             results = query.execute()
+            print("Este es el resultado de cantidad de obras que se encuentran en cada etapa:")
             for row in results:
-                print(f"Etapa: {row.etapa}, Cantidad de Obras: {row.cantidad_obras}")
+                print(f"Etapa: {row.id_etapas}, Cantidad de Obras: {row.cantidad_obras}")
             return True
         except Exception as e:
             print(f'Error: {e}')
@@ -255,6 +258,7 @@ class ObrasConstruccion(GestionarObra):
                 .join(TipoObra, on=(Obra.id_tipo == TipoObra.id))
                 .group_by(TipoObra.tipo)
             )
+            print(f"Este es el resultado de Cantidad de obras y monto total de inversión por tipo de obra:")
             for row in query.dicts():
                 print(f"Tipo de obra: {row['tipo']}, Cantidad de Obras: {row['cantidad_obras']}, Monto total: {row['monto_total']}")
             return True
@@ -265,27 +269,15 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_barrios_por_comunas_especificas(cls) -> bool:
         try:
-            comunas_ids = [1, 2, 3]
-
-            query = (Barrio
-                    .select(Comuna.comuna, Barrio.barrio)
-                    .join(Comuna)
-                    .where(Comuna.id.in_(comunas_ids))
-                    .dicts())  
-
-            resultado = {}
-            for fila in query:
-                comuna = fila['comuna']
-                barrio = fila['barrio']
-                if comuna not in resultado:
-                    resultado[comuna] = []
-                resultado[comuna].append(barrio)
-
-            if resultado:
-                for comuna, barrios in resultado.items():
-                    print(f"Comuna: {comuna}")
-                    for barrio in barrios:
-                        print(f"  - {barrio}")
+            query = (
+                Barrio
+                .select(Barrio.barrio)
+                .join(Comuna, on=(Barrio.id_comuna == Comuna.id))
+                .where(Comuna.comuna.in_([1, 2, 3]))
+            )
+            print(f"Este es el resultado de listar todos los barrios pertenecientes a las comunas 1, 2 y 3: ")
+            for row in query.dicts():
+                print(f"Barrio: {row['barrio']}")
                 return True
             else:
                 print("No se encontraron barrios para las comunas solicitadas.")
@@ -306,7 +298,7 @@ class ObrasConstruccion(GestionarObra):
                 .where((Etapa.etapa == 'finalizada') & (Comuna.comuna == 1))
             )
             result = query.dicts().first()
-            
+            print(f"Este es el resultado de Cantidad de obras finalizadas y su y monto total de inversión en la comuna 1:")
             if result:
                 cantidad_obras = result['cantidad_obras']
                 monto_total = result['monto_total'] or 0.0
@@ -323,7 +315,7 @@ class ObrasConstruccion(GestionarObra):
 
     
     @classmethod
-    def obtener_cantidad_obras_finalizadas_menos_24_meses() -> bool:
+    def obtener_cantidad_obras_finalizadas_menos_24_meses(cls) -> bool:
         try:
             query = (
                 Obra
@@ -331,7 +323,8 @@ class ObrasConstruccion(GestionarObra):
                 .join(Etapa, on=(Obra.id_etapas == Etapa.id))
                 .where((Etapa.etapa == 'finalizada') & (Obra.plazo_meses <= 24))
             )
-            cantidad_obras = query.scalar()  
+            cantidad_obras = query.scalar() 
+            print(f"Este es el resultado de cantidad de obras finalizadas en un plazo menor o igual a 24 meses:") 
             if cantidad_obras:
                 print(f"En un plazo de 24 meses o menos se han finalizado {cantidad_obras} obras")
             else:
@@ -342,7 +335,7 @@ class ObrasConstruccion(GestionarObra):
             return False
 
     @classmethod
-    def obtener_porcentaje_obras_finalizadas() -> bool:
+    def obtener_porcentaje_obras_finalizadas(cls) -> bool:
         try:
             total_obras_query = Obra.select(fn.COUNT(Obra.id).alias('total_obras'))
             total_obras = total_obras_query.scalar() or 0
@@ -353,7 +346,7 @@ class ObrasConstruccion(GestionarObra):
                 .where(Etapa.etapa == 'finalizada')
             )
             obras_finalizadas = finalizadas_query.scalar() or 0
-
+            print(f"Este es el resultado de Porcentaje total de obras finalizadas:")
             if total_obras > 0:
                 porcentaje_finalizada = (obras_finalizadas * 100) / total_obras
                 print(f"Un {porcentaje_finalizada:.2f}% de las obras se han finalizado.")
@@ -366,26 +359,36 @@ class ObrasConstruccion(GestionarObra):
 
     
     @classmethod
-    def obtener_cantidad_total_mano_obra():
+    def obtener_cantidad_total_mano_obra(cls):
         try:
-            query=(
-            Obra
-            .select(fn.Sum(Obra.mano_obra)
-            )
-            )
+            query = Obra.select(fn.Sum(Obra.mano_obra).alias('total_mano_obra')).scalar()
+            print(f"Este es el resultado de cantidad total de mano de obra empleada:")
+            if query is not None:
+                print(f"{query}")
+                return True
+            else:
+                print(f"No hay mano de obra")
+                return False
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
+            return False
+
 
     @classmethod
-    def obtener_monto_total_inversion():
+    def obtener_monto_total_inversion(cls):
         try:
-            query=(
-            Obra
-            .select(fn.Sum(Obra.monto_contrato)
-            )
-            )
+            total_inversion = Obra.select(fn.Sum(Obra.monto_contrato)).scalar()
+            print(f"Este es el resultado de Monto total de inversión: ")
+            if total_inversion is not None:
+                print(f"{total_inversion}")
+                return True
+            else:
+                print(f"No hay monto total de inversion")
+                return False
         except Exception as e:
-            print(f'El error de peewee: {e}')
+            print(f'Error: {e}')
+            return False
+
     
     @classmethod
     def obtener_indicadores(cls):
