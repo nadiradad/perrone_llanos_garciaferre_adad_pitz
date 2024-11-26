@@ -110,62 +110,55 @@ class Obra(BaseModel):
         return self.nombre
     class Meta:
         db_table = 'Obras'
-    def nuevo_proyecto(self)->bool:
+    def nuevo_proyecto()->bool:
        try:
-           etapa_encontrada, created= Etapa.get_or_create(Etapa.etapa == 'Proyecto')
+           etapa_encontrada, created= Etapa.get_or_create(etapa = 'Proyecto')
            if created == True:
                print(f"La etapa proyecto no existía y se ha creado en la bbdd")
            else:
                 print(f"Etapa del proyecto encontrada")
-           self.id_etapas = etapa_encontrada.id
            print("nuevo proyecto iniciado correctamente")
            return True, etapa_encontrada.id
        except Exception as e:
            print(f"Error: {e}")
            return False
 
-    def iniciar_contratacion(self, nro_contratacion, contratacion_tipo)->bool:
+    def iniciar_contratacion(nro_contratacion, contratacion_tipo)->bool:
         try:
             tipo_contratacion_encontrada = TipoContratacion.get(TipoContratacion.contratacion_tipo == contratacion_tipo)
             if not tipo_contratacion_encontrada:
                 print(f"No se ha encontrado el tipo de contratación solicitada")
                 return False
             else:
-                self.nro_contratacion=nro_contratacion             
-                self.id_contratacion_tipo=tipo_contratacion_encontrada.id
+                nueva_contratacion = Contratacion(nro_contratacion=nro_contratacion,
+                                                  id_contratacion_tipo=tipo_contratacion_encontrada.id)
+                nueva_contratacion.save()
                 print(f"contratación iniciada correctamente")
                 return True, tipo_contratacion_encontrada.id
         except Exception as e:
             print(f"No existe el tipo de contratacion deseado. Error: {e}")
             return None
         
-    def adjudicar_obra(self, licitacion_oferta_empresa, expediente_numero)->bool:
+    def adjudicar_obra(licitacion_oferta_empresa)->bool:
         try:
             empresa_encontrada = Empresa.get(Empresa.licitacion_oferta_empresa == licitacion_oferta_empresa)
             if not empresa_encontrada:
                 print(f"La empresa solicitada no existe ")
                 return False
-            else:     
-                self.id_empresas= empresa_encontrada.id
-                self.expediente_numero= expediente_numero
-                print("obra adjudicada correctamente")
+            else:
+                print("Empresa encontrada")
                 return True, empresa_encontrada.id
         except Exception as e:
             print(f"Error: {e}")
         
-    def iniciar_obra(self, mano_obra, destacada, fecha_inicio, fecha_fin_inicial, fuente_financiamiento )->bool:
+    def iniciar_obra(fuente_financiamiento)->bool:
         try:
             fuente_financiamiento_encontrada = FuenteFinanciamiento.get(FuenteFinanciamiento.financiamiento == fuente_financiamiento)
             if not fuente_financiamiento_encontrada:
                 print("No existe esa fuente de financiamiento.")
                 return False
             else:
-                self.mano_obra= mano_obra
-                self.destacada=destacada
-                self.fecha_inicio= fecha_inicio
-                self.fecha_fin_inicial= fecha_fin_inicial
-                self.id_financiamiento= fuente_financiamiento_encontrada.id
-                print(f"Obra iniciada correctamente")
+                print(f"Fuente financiamiento encontrada")
                 return True, fuente_financiamiento_encontrada.id
         except Exception as e:
             print(f"Error: {e}")
