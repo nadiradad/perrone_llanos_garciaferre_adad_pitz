@@ -145,7 +145,6 @@ class ObrasConstruccion(GestionarObra):
                     print(f"Error: {e}")            
 
             nro_contratacion = input("Ingrese el número de contratación: ")
-
             while True:
                 contratacion_tipo = input("Ingrese el tipo de contratación: ")
                 contratacion, id_contratacion= Obra.iniciar_contratacion(nro_contratacion, contratacion_tipo)
@@ -155,18 +154,23 @@ class ObrasConstruccion(GestionarObra):
             expediente_numero = input("Ingrese el número de expediente")
             while True:
                 licitacion_oferta_empresa = input("Ingrese la empresa adjudicada: ")
-                empresa, id_empresa= Obra.adjudicar_obra(licitacion_oferta_empresa, expediente_numero)
+                empresa, id_empresa= Obra.adjudicar_obra(licitacion_oferta_empresa)
                 if empresa:
                     break
-                
-            etapa, id_etapa= Obra.nuevo_proyecto()
+            try:
+                etapa, id_etapa= Obra.nuevo_proyecto()
+                if etapa:
+                    print('Nuevo proyecto iniciado correctamente')
+            except Exception as e:
+                print(f'Error: {e}')
+            
             mano_obra = int(input("Ingrese cantidad de mano de obra: "))
             destacada = input("Ingrese si es destacada: ")
             fecha_inicio = input("Fecha de inicio (YYYY-MM-DD): ")
             fecha_fin_inicial = input("Fecha de fin (YYYY-MM-DD, opcional): ")
             while True:
                 financiamiento = input("Ingrese la fuente de financiamiento: ")
-                inicio_obra, id_inicio_obra= Obra.iniciar_obra(mano_obra, destacada, fecha_inicio, fecha_fin_inicial, financiamiento)
+                inicio_obra, id_inicio_obra= Obra.iniciar_obra(financiamiento)
                 if inicio_obra:
                     break
 
