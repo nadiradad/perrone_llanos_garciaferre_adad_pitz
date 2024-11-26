@@ -68,8 +68,8 @@ class ObrasConstruccion(GestionarObra):
 
     @classmethod
     def cargar_datos(cls, df) -> bool:
-        for index, row in df.iterrows():
-            try:
+        try:
+            for index, row in df.iterrows():
                 comuna = Comuna.get_or_create(comuna=row['comuna'])[0]
                 barrio, _ = Barrio.get_or_create(barrio=row['barrio'], id_comuna=comuna.id)
                 area = Area.get_or_create(area_responsable=row['area_responsable'])[0]
@@ -77,11 +77,12 @@ class ObrasConstruccion(GestionarObra):
                 tipo_obra = TipoObra.get_or_create(tipo=row['tipo'])[0]
                 etapa = Etapa.get_or_create(etapa=row['etapa'])[0]
                 empresa = Empresa.get_or_create(licitacion_oferta_empresa=row['licitacion_oferta_empresa'])[0]
-                tipo_contratacion = TipoContratacion.get_or_create(contratacion_tipo=row['contratacion_tipo'])[0]  
+                tipo_contratacion = TipoContratacion.get_or_create(contratacion_tipo=row['contratacion_tipo'])[0]
                 contratacion = Contratacion.get_or_create(
-                nro_contratacion=row['nro_contratacion'], 
-                id_contratacion_tipo=tipo_contratacion.id
+                    nro_contratacion=row['nro_contratacion'], 
+                    id_contratacion_tipo=tipo_contratacion.id
                 )[0]
+                
                 obra = Obra.create(
                     nombre=row['nombre'],
                     descripcion=row['descripcion'],
@@ -102,11 +103,14 @@ class ObrasConstruccion(GestionarObra):
                     id_empresas=empresa.id
                 )
                 obra.save()
-                print("Datos cargados exitosamente.")
-                return True 
-            except Exception as e:
-                print(f"Error: {e}")
-                return False 
+
+            print("Todos los datos se cargaron exitosamente.")
+            return True
+
+        except Exception as e:
+            print(f"Error al cargar los datos: {e}")
+            return False
+
 
 
     @classmethod
