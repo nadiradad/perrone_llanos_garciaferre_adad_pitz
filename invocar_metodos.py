@@ -6,5 +6,14 @@ ObrasConstruccion.limpiar_datos(df)
 ObrasConstruccion.cargar_datos(df)
 ObrasConstruccion.obtener_indicadores()
 obra1 =ObrasConstruccion.nueva_obra()
-obra2 =GestionarObra.nueva_obra()
-# sqlite_db.create_tables([Area, FuenteFinanciamiento, Comuna,Barrio, Etapa, Empresa, TipoContratacion, Contratacion, TipoObra,  Obra ])
+porcentaje = 20
+obra1.actualizar_porcentaje_avance(porcentaje)
+manoObra=150
+obra1.incrementar_mano_obra(manoObra)
+obra1.finalizar_obra()
+obra2 =ObrasConstruccion.nueva_obra()
+porcentaje1 = 36
+obra2.actualizar_porcentaje_avance(porcentaje1)
+manoObra1=231
+obra2.incrementar_mano_obra(manoObra1)
+obra2.rescindir_obra()

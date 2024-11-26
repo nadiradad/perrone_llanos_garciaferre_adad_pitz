@@ -157,12 +157,8 @@ class ObrasConstruccion(GestionarObra):
                 empresa, id_empresa= Obra.adjudicar_obra(licitacion_oferta_empresa)
                 if empresa:
                     break
-            try:
-                etapa, id_etapa= Obra.nuevo_proyecto()
-                if etapa:
-                    print('Nuevo proyecto iniciado correctamente')
-            except Exception as e:
-                print(f'Error: {e}')
+
+            etapa, id_etapa= Obra.nuevo_proyecto()
             
             mano_obra = int(input("Ingrese cantidad de mano de obra: "))
             destacada = input("Ingrese si es destacada: ")
@@ -202,7 +198,8 @@ class ObrasConstruccion(GestionarObra):
                 id_etapas = id_etapa,
                 id_financiamiento =id_inicio_obra,
                 id_barrio= barrio_encontrado.id   
-            ).save()
+            )
+            ObraGuardada = nueva_obra.save()
             print("Nueva obra registrada con éxito.")
             return nueva_obra
         except Exception as e:

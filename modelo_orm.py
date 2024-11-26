@@ -192,7 +192,7 @@ class Obra(BaseModel):
             return False
         else:
             try:
-                self.mano_obra += mano_obra # incrementa la mano de obra
+                self.mano_obra += mano_obra
                 print(f"Se incrementó la mano de obra en {mano_obra}. Total actual: {self.mano_obra}.")
                 return True
             except Exception as e:
@@ -202,7 +202,7 @@ class Obra(BaseModel):
 
     def finalizar_obra(self):
         try:
-            etapa_finalizada, created = Etapa.get_or_create(Etapa.etapa == 'Finalizada')
+            etapa_finalizada, created = Etapa.get_or_create(etapa = 'Finalizada')
             if created:
                 print('Se creo la etapa Finalizada en la base de datos...')
             else:
@@ -217,7 +217,7 @@ class Obra(BaseModel):
     
     def rescindir_obra(self) -> bool:
         try:
-            etapa_rescindida, created = Etapa.get_or_create(Etapa.etapa == 'Rescindida')
+            etapa_rescindida, created = Etapa.get_or_create(etapa = 'Rescindida')
             if created:
                 print('Se creo la etapa Rescindida en la base de datos...')
             else:
@@ -228,3 +228,5 @@ class Obra(BaseModel):
         except Exception as e:
             print(f"No se pudo rescindir la obra. Error: {e}")
             return False
+
+
