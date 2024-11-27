@@ -1,4 +1,5 @@
 from gestionar_obras import *
+import numpy as np
 
 class ObrasConstruccion(GestionarObra):
     @classmethod
@@ -54,12 +55,11 @@ class ObrasConstruccion(GestionarObra):
             sqlite_db.close()
             return False
 
-    
     @classmethod
     def limpiar_datos(cls, df: pd.DataFrame) -> pd.DataFrame:
         df = df.dropna(how='all')  
-        df = df.fillna({col: 'Desconocido' if df[col].dtype == 'object' else 0 
-                        for col in df.columns})
+        df = df.fillna({col: 'Desconocido' if df[col].dtype == 'object' else 0 for col in df.columns})
+        
         if 'monto_contrato' in df.columns:
             df['monto_contrato'] = df['monto_contrato'].astype(str)
             df['monto_contrato'] = (
@@ -68,15 +68,18 @@ class ObrasConstruccion(GestionarObra):
                 .str.replace(r'\.', '', regex=True)
                 .str.replace(',', '.', regex=False)
             )
+            
             def convertir_float(valor):
                 try:
                     return float(valor)
                 except ValueError:
-                    return 0.0
+                    return float('nan')
             
             df['monto_contrato'] = df['monto_contrato'].apply(convertir_float)
-        print("Datos Limpios")
+            df = df.dropna(subset=['monto_contrato'])
+
         return df
+
 
 
     @classmethod
