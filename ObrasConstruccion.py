@@ -77,7 +77,7 @@ class ObrasConstruccion(GestionarObra):
             
             df['monto_contrato'] = df['monto_contrato'].apply(convertir_float)
             df = df.dropna(subset=['monto_contrato'])
-
+        print(f"Datos limpios")
         return df
 
 
@@ -300,9 +300,6 @@ class ObrasConstruccion(GestionarObra):
             for row in query.dicts():
                 print(f"Barrio: {row['barrio']}")
             return True
-            # else:
-            #     print("No se encontraron barrios para las comunas solicitadas.")
-            #     return False
         except Exception as e:
             print(f'Error: {e}')
             return False
@@ -397,9 +394,7 @@ class ObrasConstruccion(GestionarObra):
     def obtener_monto_total_inversion(cls):
         try:
             print(f"Este es el resultado de Monto total de inversión: ")
-            # total_inversion = Obra.select(fn.Sum(fn.Coalesce(Obra.monto_contrato, 0))).scalar()
-            for obra in Obra.select(Obra.monto_contrato):
-                print(obra.monto_contrato)
+            total_inversion = Obra.select(fn.Sum(fn.Coalesce(Obra.monto_contrato, 0))).scalar()
 
             if total_inversion is not None:
                 print(f"{total_inversion}")
