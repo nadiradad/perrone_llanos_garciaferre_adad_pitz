@@ -11,7 +11,7 @@ def main():
     print('Procesos iniciales finalizados...\n')
     while True:
         print('Opciones: ')
-        print('1- Importar csv')
+        print('1- Importar csv (NECESARIO EJECUTAR ANTES DE LAS OTRAS OPCIONES)')
         print('2- Obtener indicadores')
         print('3- Cumplir consigna Instancia 1')
         print('4- Cumplir consigna Instancia 2')
