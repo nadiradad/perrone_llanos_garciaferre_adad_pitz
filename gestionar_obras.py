@@ -1,38 +1,92 @@
-from abc import ABC
-
+import pandas as pd
+from peewee import *
+from modelo_orm import *
+from abc import ABC, abstractmethod
 class GestionarObra(ABC):
     def __init__(self):
         super().__init__()
+    
+    @classmethod
+    @abstractmethod
+    def limpiar_datos(cls, df: pd.DataFrame) -> pd.DataFrame:
+       pass
 
+    @classmethod
+    @abstractmethod
     def extraer_datos():
-        """que debe incluir las sentencias necesarias para manipular el dataset a
-través de un objeto Dataframe del módulo “pandas”."""
-        pass
+       pass
 
+    @classmethod
+    @abstractmethod
     def conectar_db():
-        """que debe incluir las sentencias necesarias para realizar la conexión a la base de datos “obras_urbanas.db”."""
-        pass
+       pass
 
+    @classmethod
+    @abstractmethod
     def mapear_orm():
-        """que debe incluir las sentencias necesarias para realizar la creación de la estructura de la base de datos (tablas y relaciones) utilizando el método de instancia “create_tables(list)” del módulo “peewee” """
-        pass
+       pass
 
-    def limpiar_datos():
-        """que debe incluir las sentencias necesarias para realizar la “limpieza” de los datos nulos y no accesibles del Dataframe."""
-        pass
+    @classmethod
+    @abstractmethod
+    def cargar_datos(df):
+       pass
 
-    def cargar_datos():
-        """que debe incluir las sentencias necesarias para persistir los datos de las obras (ya transformados y “limpios”) que contiene el objeto Dataframe en la base de datos relacional SQLite. Para ello se debe utilizar el método de clase Model create() en cada una de las clase del modelo ORM definido."""
-        pass
-
+    @classmethod
+    @abstractmethod
     def nueva_obra():
-        """que debe incluir las sentencias necesarias para crear nuevas instancias de Obra. Se deben considerar los siguientes requisitos:
-        • Todos los valores requeridos para la creación de estas nuevas instancias deben ser ingresados por teclado.
-        • Para los valores correspondientes a registros de tablas relacionadas (foreign key), el valor ingresado debe buscarse en la tabla correspondiente mediante sentencia de búsqueda ORM, para obtener la instancia relacionada, si el valor ingresado no existe en la tabla, se le debe informar al usuario y solicitarle un nuevo ingreso por teclado.
-        • Para persistir en la BD los datos de la nueva instancia de Obra debe usarse el método save() de Model del módulo “peewee”. 
-        • Este método debe retornar la nueva instancia de obra."""
+       pass
+
+    @classmethod
+    @abstractmethod
+    def obtener_listado_areas_responsables():
+       pass
+
+    @classmethod
+    @abstractmethod
+    def obtener_listado_tipos_obra():
+       pass
+
+    @classmethod
+    @abstractmethod
+    def obtener_cantidad_obras_por_etapa():
+       pass
+    
+    @classmethod
+    @abstractmethod
+    def obtener_cantidad_obras_monto_por_obra():
+        pass
+    
+    @classmethod
+    @abstractmethod
+    def obtener_barrios_por_comuna():
+        pass
+    
+    @classmethod
+    @abstractmethod
+    def obtener_cantidad_obras_finalizadas_monto_total_comuna1():
         pass
 
-    def obtener_indicadores():
-        """que debe incluir las sentencias necesarias para obtener información de las obras existentes en la base de datos SQLite a través de sentencias ORM."""
+    @classmethod
+    @abstractmethod
+    def obtener_cantidad_obras_finalizadas_menos_24_meses():
         pass
+    
+    @classmethod
+    @abstractmethod    
+    def obtener_porcentaje_obras_finalizadas(): 
+        pass
+        
+    @classmethod
+    @abstractmethod    
+    def obtener_cantidad_total_mano_obra():
+        pass
+
+    @classmethod
+    @abstractmethod  
+    def obtener_monto_total_inversion():
+        pass
+
+    @classmethod
+    @abstractmethod  
+    def obtener_indicadores():
+       pass
