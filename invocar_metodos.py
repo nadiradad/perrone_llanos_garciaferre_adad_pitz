@@ -26,8 +26,8 @@ def main():
     print('Al ejecutar este archivo lo primero que vamos hacer es configurar la base de datos y cargar los datos del data set...\n')
     ObrasConstruccion.conectar_db()
     ObrasConstruccion.mapear_orm()
-    df= ObrasConstruccion.extraer_datos()
-    ObrasConstruccion.limpiar_datos(df)
+    df = ObrasConstruccion.extraer_datos()
+    df = ObrasConstruccion.limpiar_datos(df)
     ObrasConstruccion.cargar_datos(df)
     print('Procesos iniciales finalizados...\n')
     while True:
