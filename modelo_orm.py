@@ -228,5 +228,3 @@ class Obra(BaseModel):
         except Exception as e:
             print(f"No se pudo rescindir la obra. Error: {e}")
             return False
-
-
