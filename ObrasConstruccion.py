@@ -164,7 +164,7 @@ class ObrasConstruccion(GestionarObra):
                 if contratacion:
                     break
 
-            expediente_numero = input("Ingrese el número de expediente")
+            expediente_numero = input("Ingrese el número de expediente: ")
             while True:
                 licitacion_oferta_empresa = input("Ingrese la empresa adjudicada: ")
                 empresa, id_empresa= Obra.adjudicar_obra(licitacion_oferta_empresa)

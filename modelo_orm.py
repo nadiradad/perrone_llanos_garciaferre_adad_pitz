@@ -125,10 +125,10 @@ class Obra(BaseModel):
 
     def iniciar_contratacion(nro_contratacion, contratacion_tipo)->bool:
         try:
-            tipo_contratacion_encontrada = TipoContratacion.get(TipoContratacion.contratacion_tipo == contratacion_tipo)
-            if not tipo_contratacion_encontrada:
+            tipo_contratacion_encontrada = TipoContratacion.get_or_none(TipoContratacion.contratacion_tipo == contratacion_tipo)
+            if  tipo_contratacion_encontrada is None:
                 print(f"No se ha encontrado el tipo de contratación solicitada")
-                return False
+                return False, None
             else:
                 nueva_contratacion = Contratacion(nro_contratacion=nro_contratacion,
                                                   id_contratacion_tipo=tipo_contratacion_encontrada.id)
@@ -137,14 +137,14 @@ class Obra(BaseModel):
                 return True, tipo_contratacion_encontrada.id
         except Exception as e:
             print(f"No existe el tipo de contratacion deseado. Error: {e}")
-            return None
+            return False
         
     def adjudicar_obra(licitacion_oferta_empresa)->bool:
         try:
-            empresa_encontrada = Empresa.get(licitacion_oferta_empresa = licitacion_oferta_empresa)
-            if not empresa_encontrada:
+            empresa_encontrada = Empresa.get_or_none(licitacion_oferta_empresa = licitacion_oferta_empresa)
+            if empresa_encontrada is None:
                 print(f"La empresa solicitada no existe ")
-                return False
+                return False, None
             else:
                 print("Empresa encontrada")
                 return True, empresa_encontrada.id
@@ -153,10 +153,10 @@ class Obra(BaseModel):
         
     def iniciar_obra(fuente_financiamiento)->bool:
         try:
-            fuente_financiamiento_encontrada = FuenteFinanciamiento.get(FuenteFinanciamiento.financiamiento == fuente_financiamiento)
+            fuente_financiamiento_encontrada = FuenteFinanciamiento.get_or_none(FuenteFinanciamiento.financiamiento == fuente_financiamiento)
             if not fuente_financiamiento_encontrada:
                 print("No existe esa fuente de financiamiento.")
-                return False
+                return False,None 
             else:
                 print(f"Fuente financiamiento encontrada")
                 return True, fuente_financiamiento_encontrada.id
