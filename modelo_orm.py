@@ -141,7 +141,7 @@ class Obra(BaseModel):
         
     def adjudicar_obra(licitacion_oferta_empresa)->bool:
         try:
-            empresa_encontrada = Empresa.get(Empresa.licitacion_oferta_empresa == licitacion_oferta_empresa)
+            empresa_encontrada = Empresa.get(licitacion_oferta_empresa = licitacion_oferta_empresa)
             if not empresa_encontrada:
                 print(f"La empresa solicitada no existe ")
                 return False

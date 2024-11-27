@@ -60,11 +60,24 @@ class ObrasConstruccion(GestionarObra):
         df = df.dropna(how='all')  
         df = df.fillna({col: 'Desconocido' if df[col].dtype == 'object' else 0 
                         for col in df.columns})
-        
         if 'monto_contrato' in df.columns:
-            df['monto_contrato'] = df['monto_contrato'].replace({'\$': '', '\.': '', ',': '.'}, regex=True)
-        print("Datos limpios")
+            df['monto_contrato'] = df['monto_contrato'].astype(str)
+            df['monto_contrato'] = (
+                df['monto_contrato']
+                .str.replace(r'[$]', '', regex=True)
+                .str.replace(r'\.', '', regex=True)
+                .str.replace(',', '.', regex=False)
+            )
+            def convertir_float(valor):
+                try:
+                    return float(valor)
+                except ValueError:
+                    return 0.0
+            
+            df['monto_contrato'] = df['monto_contrato'].apply(convertir_float)
+        print("Datos Limpios")
         return df
+
 
     @classmethod
     def cargar_datos(cls, df) -> bool:
@@ -283,10 +296,10 @@ class ObrasConstruccion(GestionarObra):
             print(f"Este es el resultado de listar todos los barrios pertenecientes a las comunas 1, 2 y 3: ")
             for row in query.dicts():
                 print(f"Barrio: {row['barrio']}")
-                return True
-            else:
-                print("No se encontraron barrios para las comunas solicitadas.")
-                return False
+            return True
+            # else:
+            #     print("No se encontraron barrios para las comunas solicitadas.")
+            #     return False
         except Exception as e:
             print(f'Error: {e}')
             return False
@@ -300,24 +313,22 @@ class ObrasConstruccion(GestionarObra):
                 .join(Etapa, on=(Obra.id_etapas == Etapa.id))
                 .join(Barrio, on=(Obra.id_barrio == Barrio.id))
                 .join(Comuna, on=(Barrio.id_comuna == Comuna.id))
-                .where((Etapa.etapa == 'finalizada') & (Comuna.comuna == 1))
+                .where((Etapa.etapa == 'Finalizada') & (Comuna.comuna == 1))
             )
-            result = query.dicts().first()
+            result = query.dicts().get() 
+            cantidad_obras = result['cantidad_obras']
+            monto_total = result['monto_total']
             print(f"Este es el resultado de Cantidad de obras finalizadas y su y monto total de inversión en la comuna 1:")
-            if result:
-                cantidad_obras = result['cantidad_obras']
-                monto_total = result['monto_total'] or 0.0
+            if monto_total is None:
+                print('No se ha ingresado ningún monto')
+                return False
+            else:
                 print(f'Cantidad de obras finalizadas: {cantidad_obras}')
                 print(f'Monto total de contratos: {monto_total}')
                 return True
-            else:
-                print('No se encontraron obras finalizadas.')
-                return False
-            
         except Exception as e:
             print(f'Error: {e}')
             return False
-
     
     @classmethod
     def obtener_cantidad_obras_finalizadas_menos_24_meses(cls) -> bool:
@@ -326,7 +337,7 @@ class ObrasConstruccion(GestionarObra):
                 Obra
                 .select(fn.COUNT(Obra.id).alias('cantidad_obras'))
                 .join(Etapa, on=(Obra.id_etapas == Etapa.id))
-                .where((Etapa.etapa == 'finalizada') & (Obra.plazo_meses <= 24))
+                .where((Etapa.etapa == 'Finalizada') & (Obra.plazo_meses <= 24))
             )
             cantidad_obras = query.scalar() 
             print(f"Este es el resultado de cantidad de obras finalizadas en un plazo menor o igual a 24 meses:") 
@@ -348,7 +359,7 @@ class ObrasConstruccion(GestionarObra):
                 Obra
                 .select(fn.COUNT(Obra.id).alias('obras_finalizadas'))
                 .join(Etapa, on=(Obra.id_etapas == Etapa.id))
-                .where(Etapa.etapa == 'finalizada')
+                .where(Etapa.etapa == 'Finalizada')
             )
             obras_finalizadas = finalizadas_query.scalar() or 0
             print(f"Este es el resultado de Porcentaje total de obras finalizadas:")
@@ -382,8 +393,11 @@ class ObrasConstruccion(GestionarObra):
     @classmethod
     def obtener_monto_total_inversion(cls):
         try:
-            total_inversion = Obra.select(fn.Sum(Obra.monto_contrato)).scalar()
             print(f"Este es el resultado de Monto total de inversión: ")
+            # total_inversion = Obra.select(fn.Sum(fn.Coalesce(Obra.monto_contrato, 0))).scalar()
+            for obra in Obra.select(Obra.monto_contrato):
+                print(obra.monto_contrato)
+
             if total_inversion is not None:
                 print(f"{total_inversion}")
                 return True
@@ -411,7 +425,7 @@ class ObrasConstruccion(GestionarObra):
             print('9- Obtener cantidad_total_mano_obra')
             print('10- Obtener monto_total_inversion')
             print('0- Salir de indicadores')
-            opcion = int(input('Ingrese el nro segun la opcion deseada'))
+            opcion = int(input('Ingrese el nro segun la opcion deseada: '))
             match opcion:
                 case 1:
                     cls.obtener_listado_areas_responsables()
